@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-navbar',
@@ -7,4 +8,10 @@ import { Component } from '@angular/core';
 })
 export class NavbarComponent {
 
+  constructor(private router: Router) { }
+
+  logout() {
+    console.log('Cerrando sesión desde la biblioteca...');
+    this.router.navigate(['/login']);
+  }
 }

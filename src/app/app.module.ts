@@ -1,7 +1,10 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { ReactiveFormsModule } from '@angular/forms'; // ✅ importa esto
-import { AppRoutingModule } from './app-routing.module'; // si usas rutas
+import { ReactiveFormsModule } from '@angular/forms';
+import { AppRoutingModule } from './app-routing.module'; 
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http'; 
+import { AuthInterceptor } from './auth.interceptor';
+
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
@@ -17,7 +20,7 @@ import { LibrosAdminComponent } from './pages/libros-admin/libros-admin.componen
 import { ReservasAdminComponent } from './pages/reservas-admin/reservas-admin.component';
 import { PrestamosAdminComponent } from './pages/prestamos-admin/prestamos-admin.component';
 import { ReportesAdminComponent } from './pages/reportes-admin/reportes-admin.component';
-import { InicioAdminComponent } from './pages/inicio-admin/inicio-admin.component'; // ✅ importa tu componente
+import { InicioAdminComponent } from './pages/inicio-admin/inicio-admin.component'; 
 
 @NgModule({
   declarations: [
@@ -36,14 +39,19 @@ import { InicioAdminComponent } from './pages/inicio-admin/inicio-admin.componen
     ReservasAdminComponent,
     PrestamosAdminComponent,
     ReportesAdminComponent,
-    InicioAdminComponent // ✅ decláralo aquí
+    InicioAdminComponent 
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule, // si tienes rutas
-    ReactiveFormsModule // ✅ agrégalo aquí
+    AppRoutingModule, 
+    ReactiveFormsModule, 
+    HttpClientModule
   ],
-  providers: [],
+  providers: [{
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
