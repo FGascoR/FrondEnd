@@ -1,0 +1,25 @@
+<nav class="sidebar text-white p-4">
+  <div class="mb-4 text-center d-none d-md-block">
+    <img src="assets/logo-ceibos.png" alt="Logo Colegio" width="170">
+  </div>
+
+  <button
+    class="btn btn-outline-light d-md-none mb-3"
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#menu"
+    aria-expanded="false"
+    aria-controls="menu">
+    ☰ Menú
+  </button>
+
+  <div class="collapse d-md-block" id="menu">
+    <ul class="nav flex-column">
+      <li class="nav-item mb-3"><a class="nav-link text-white" routerLink="/paneladmin/libros-admin" routerLinkActive="active">📚 Libros</a></li>
+      <li class="nav-item mb-3"><a class="nav-link text-white" routerLink="/paneladmin/reservas-admin"routerLinkActive="active">📖 Reservas</a></li>
+      <li class="nav-item mb-3"><a class="nav-link text-white" routerLink="/paneladmin/prestamos-admin" routerLinkActive="active">📦 Prestados</a></li>
+      <li class="nav-item mb-3"><a class="nav-link text-white" routerLink="/paneladmin/reportes-admin" routerLinkActive="active">📊 Reportes</a></li>
+      <li class="nav-item"><a class="nav-link text-white" routerLink="/penalizacion">⚠️ Penalización</a></li>
+    </ul>
+  </div>
+</nav>

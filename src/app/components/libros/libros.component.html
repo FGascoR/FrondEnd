@@ -1,0 +1,35 @@
+<!-- biblioteca.component.html -->
+<div class="row g-4">
+  <div class="col-12 col-sm-6 col-md-4 col-lg-3" *ngFor="let libro of librosPaginados">
+    <div class="card text-center shadow-sm h-100" style="border:2px solid #2B4D92;">
+      <div class="card-body">
+        <i class="bi bi-book" style="font-size: 3rem;"></i>
+        <h6 class="mt-3 fw-bold">{{ libro.titulo }}</h6>
+        <p class="text-muted">{{ libro.autor }}</p>
+        <div class="d-flex justify-content-center gap-3">
+          <button class="btn btn-outline-warning">Reservar</button>
+          <button class="btn btn-secondary">Detalles</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 🔽 Controles de paginación -->
+<nav class="mt-4">
+  <ul class="pagination justify-content-center">
+    <li class="page-item" [class.disabled]="page === 1">
+      <a class="page-link" (click)="cambiarPagina(page - 1)">«</a>
+    </li>
+
+    <li class="page-item"
+        *ngFor="let p of [].constructor(totalPages()); let i = index"
+        [class.active]="page === i + 1">
+      <a class="page-link" (click)="cambiarPagina(i + 1)">{{ i + 1 }}</a>
+    </li>
+
+    <li class="page-item" [class.disabled]="page === totalPages()">
+      <a class="page-link" (click)="cambiarPagina(page + 1)">»</a>
+    </li>
+  </ul>
+</nav>

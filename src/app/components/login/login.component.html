@@ -1,0 +1,45 @@
+<div class="container-fluid vh-100 d-flex flex-column flex-md-row p-0">
+  <!-- Imagen izquierda (solo visible en pantallas medianas o mayores) -->
+  <div class="col-md-6 d-none d-md-block p-0">
+    <img 
+      src="assets/ceibos.png" 
+      alt="Colegio Ceibos" 
+      class="img-fluid w-100 h-100 object-fit-cover">
+  </div>
+
+  <!-- Panel derecho -->
+  <div class="col-12 col-md-6 d-flex align-items-center justify-content-center bg-white p-4">
+    <div class="w-100" style="max-width: 380px;">
+      <!-- Logo -->
+      <div class="text-center mb-4">
+        <img class="logoCeibos" src="assets/logo-ceibos.png" alt="Logo Ceibos" class="img-fluid logoCeibos">
+      </div>
+
+      <!-- Formulario -->
+      <form (ngSubmit)="onLogin()" [formGroup]="loginForm">
+        <div class="mb-3">
+          <label for="email" class="form-label">Correo:</label>
+          <input type="email" id="email" class="form-control" formControlName="email" placeholder="Ingresa tu correo">
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">Contraseña:</label>
+          <div class="input-group">
+            <input 
+              [type]="showPassword ? 'text' : 'password'" 
+              id="password" 
+              class="form-control" 
+              formControlName="password" 
+              placeholder="Ingresa tu contraseña">
+            <button class="btn btn-outline-secondary" type="button" (click)="togglePassword()">
+              <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+            </button>
+          </div>
+          <small class="text-end d-block mt-1"><a href="#">¿Olvidaste tu contraseña?</a></small>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 mt-3">Iniciar Sesión</button>
+      </form>
+    </div>
+  </div>
+</div>

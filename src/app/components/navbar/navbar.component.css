@@ -1,0 +1,10 @@
+.banner img {
+  max-height: 400px;
+  object-fit: cover;
+  width: 100%;
+}
+.logoCeibos {
+  width: 160px;      
+  max-width: 220px;   
+  height: auto;
+}
