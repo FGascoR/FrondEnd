@@ -1,36 +1,10 @@
 <div class="container mt-4">
   <div class="d-flex justify-content-between mb-3">
     <div>
-      <button class="btn btn-primary me-2">Agregar</button>
-      <button class="btn btn-warning text-white">Dar de baja</button>
-    </div>
-  </div>
-
-  <div class="row g-3 mb-3">
-    <div class="col-md-3">
-      <label class="form-label">Título</label>
-      <input type="text" class="form-control">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Editorial</label>
-      <input type="text" class="form-control">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">ISBN</label>
-      <input type="text" class="form-control">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Año de publicación</label>
-      <input type="date" class="form-control">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Estado</label>
-      <select class="form-select">
-        <option value="">Seleccionar</option>
-        <option value="disponible">Disponible</option>
-        <option value="prestado">Prestado</option>
-        <option value="dado de baja">Dado de baja</option>
-      </select>
+      <button class="btn btn-primary me-2" (click)="openEjemplarModal()">Agregar Ejemplar</button>
+      <button class="btn btn-success me-2" (click)="openLibroModal()">
+        <i class="bi bi-book-fill"></i> Agregar Nuevo Libro
+      </button>
     </div>
   </div>
 
@@ -38,23 +12,186 @@
     <thead class="table-secondary">
       <tr>
         <th>Título</th>
-        <th>Editorial</th>
-        <th>Año de publicación</th>
+        <th>Autor</th>
         <th>ISBN</th>
         <th>Estado</th>
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
-      <!-- Aquí se mostrarán los libros -->
+      <ng-container *ngFor="let ej of ejemplares">
+        <tr *ngIf="ej.estado !== 'Dado de baja'">
+          <td>{{ ej.libro?.titulo }}</td>
+          <td>{{ ej.libro?.autorLibros[0]?.autor?.nombres }} {{ ej.libro?.autorLibros[0]?.autor?.apellidos }}</td>
+          <td>{{ ej.libro?.isbn }}</td>
+          <td>
+            <span class="badge" 
+                  [ngClass]="{'bg-success': ej.estado === 'Disponible', 'bg-warning text-dark': ej.estado === 'Prestado', 'bg-danger': ej.estado === 'En reparación'}">
+              {{ ej.estado }}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-outline-secondary me-2" (click)="openEjemplarModal(ej)">
+              <i class="bi bi-pencil"></i> Editar
+            </button>
+            <button class="btn btn-sm btn-outline-danger" (click)="onDarDeBaja(ej)">
+              <i class="bi bi-trash"></i> Dar de Baja
+            </button>
+          </td>
+        </tr>
+      </ng-container>
+      <tr *ngIf="ejemplares.length === 0">
+        <td colspan="6" class="text-center">No hay ejemplares para mostrar.</td>
+      </tr>
     </tbody>
   </table>
+</div>
 
-  <nav aria-label="Paginación" class="mt-3">
-    <ul class="pagination justify-content-center">
-      <li class="page-item disabled">
-        <span class="page-link">1</span>
-      </li>
-      <li class="page-item"><a class="page-link" href="#">></a></li>
-    </ul>
-  </nav>
+
+<div class="modal fade" id="ejemplarModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ isEditMode ? 'Editar Ejemplar' : 'Agregar Nuevo Ejemplar' }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form [formGroup]="ejemplarForm" (ngSubmit)="onEjemplarSubmit()">
+        <div class="modal-body">
+          
+          <div class="mb-3">
+            <label for="libro" class="form-label">Libro (Título)</label>
+            <select id="libro" class="form-select" formControlName="libro" [compareWith]="compareById">
+              <option [ngValue]="null" disabled>Seleccione un libro...</option>
+              <option *ngFor="let libro of libros" [ngValue]="libro">
+                {{ libro.titulo }} ({{ libro.isbn }})
+              </option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="codigoInterno" class="form-label">Código Interno</label>
+            <input type="text" id="codigoInterno" class="form-control" formControlName="codigoInterno" placeholder="Ej: 001-A">
+          </div>
+          <div class="mb-3">
+            <label for="estadoEjemplar" class="form-label">Estado Físico</label>
+            <select id="estadoEjemplar" class="form-select" formControlName="estadoEjemplar">
+              <option value="Bueno">Bueno</option>
+              <option value="Regular">Regular</option>
+              <option value="Malo">Malo</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="estado" class="form-label">Disponibilidad</label>
+            <select id="estado" class="form-select" formControlName="estado">
+              <option value="Disponible">Disponible</option>
+              <option value="Prestado">Prestado</option>
+              <option value="En reparación">En reparación</option>
+              <option value="Dado de baja">Dado de baja</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="ejemplarForm.invalid">
+            {{ isEditMode ? 'Actualizar' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="libroModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Agregar Nuevo Libro</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form [formGroup]="libroForm" (ngSubmit)="onLibroSubmit()">
+        <div class="modal-body">
+          
+          <div class="mb-3">
+            <label for="titulo" class="form-label">Título</label>
+            <input type="text" id="titulo" class="form-control" formControlName="titulo">
+          </div>
+
+          <div class="mb-3">
+            <label for="autor" class="form-label">Autor</label>
+            <div class="input-group">
+              <select id="autor" class="form-select" formControlName="autor" [compareWith]="compareById">
+                <option [ngValue]="null" disabled>Seleccione un autor...</option>
+                <option *ngFor="let autor of autores" [ngValue]="autor">
+                  {{ autor.nombres }} {{ autor.apellidos }}
+                </option>
+              </select>
+              <button class="btn btn-outline-success" type="button" (click)="openAutorModal()">
+                <i class="bi bi-plus-lg"></i>
+              </button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="isbn" class="form-label">ISBN</label>
+            <input type="text" id="isbn" class="form-control" formControlName="isbn">
+          </div>
+
+          <div class="mb-3">
+            <label for="editorial" class="form-label">Editorial</label>
+            <input type="text" id="editorial" class="form-control" formControlName="editorial">
+          </div>
+
+          <div class="mb-3">
+            <label for="anioPublicacion" class="form-label">Año de Publicación</label>
+            <input type="date" id="anioPublicacion" class="form-control" formControlName="anioPublicacion">
+          </div>
+
+          <div class="mb-3">
+            <label for="dewey" class="form-label">Categoría Dewey</label>
+            <select id="dewey" class="form-select" formControlName="dewey" [compareWith]="compareById">
+              <option [ngValue]="null" disabled>Seleccione categoría...</option>
+              <option *ngFor="let cat of deweyCategorias" [ngValue]="cat">
+                {{ cat.idDewey }} - {{ cat.categoria }}
+              </option>
+            </select>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="libroForm.invalid">Guardar Libro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="autorModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm"> <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Agregar Nuevo Autor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form [formGroup]="autorForm" (ngSubmit)="onAutorSubmit()">
+        <div class="modal-body">
+          
+          <div class="mb-3">
+            <label for="nombres" class="form-label">Nombres</label>
+            <input type="text" id="nombres" class="form-control" formControlName="nombres">
+          </div>
+
+          <div class="mb-3">
+            <label for="apellidos" class="form-label">Apellidos</label>
+            <input type="text" id="apellidos" class="form-control" formControlName="apellidos">
+          </div>
+
+          <div class="mb-3">
+            <label for="nacionalidad" class="form-label">Nacionalidad</label>
+            <input type="text" id="nacionalidad" class="form-control" formControlName="nacionalidad">
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="autorForm.invalid">Guardar Autor</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
