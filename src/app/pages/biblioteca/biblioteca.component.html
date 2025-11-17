@@ -1,18 +1,50 @@
-<!-- Navbar -->
 <app-navbar></app-navbar>
 
-<!-- Contenido principal -->
 <div class="container my-5">
   <div class="row">
+
     <div class="col-lg-3 mb-4">
-      <app-filtros></app-filtros>
+      <app-filtros (onSearch)="cargarLibros($event)"></app-filtros>
     </div>
+
     <div class="col-lg-9">
-      <app-libros></app-libros>
-    </div>
-  </div>
-</div>
+      
+      <div class="row g-4">
+        <div class="col-12 col-sm-6 col-md-6 col-lg-4" *ngFor="let libro of librosPaginados">
+          <div class="card text-center shadow-sm h-100" style="border:2px solid #2B4D92;">
+            <div class="card-body d-flex flex-column">
+              <i class="bi bi-book" style="font-size: 3rem;"></i>
+              
+              <h6 class="mt-3 fw-bold">{{ libro.titulo }}</h6>
+              <p class="text-muted">{{ getAutor(libro) }}</p>
+              <p class="text-muted small">Categoria: {{ libro.dewey?.categoria || 'N/A' }}</p> 
 
-<!-- Footer -->
-<app-footer></app-footer>
+              <div class="d-flex justify-content-center gap-3 mt-auto">
+                <button class="btn btn-outline-warning">Reservar</button>
+                <button class="btn btn-secondary">Detalles</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="libros.length === 0" class="col-12 text-center py-5">
+          <h5>No se encontraron libros.</h5>
+        </div>
+      </div>
 
+      <nav class="mt-4" *ngIf="libros.length > pageSize">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" [class.disabled]="page === 1">
+            <a class="page-link" (click)="cambiarPagina(page - 1)">«</a>
+          </li>
+          <li class="page-item"
+              *ngFor="let p of paginas"
+              [class.active]="page === p">
+            <a class="page-link" (click)="cambiarPagina(p)">{{ p }}</a>
+          </li>
+          <li class="page-item" [class.disabled]="page === totalPages()">
+            <a class="page-link" (click)="cambiarPagina(page + 1)">»</a>
+          </li>
+        </ul>
+      </nav>
+
+    </div> </div> </div> <app-footer></app-footer>

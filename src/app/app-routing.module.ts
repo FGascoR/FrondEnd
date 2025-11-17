@@ -8,21 +8,22 @@ import { LibrosAdminComponent } from './pages/libros-admin/libros-admin.componen
 import { ReservasAdminComponent } from './pages/reservas-admin/reservas-admin.component';
 import { PrestamosAdminComponent } from './pages/prestamos-admin/prestamos-admin.component';
 import { ReportesAdminComponent } from './pages/reportes-admin/reportes-admin.component';
+import { AdminGuard } from './admin.guard';
+
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { path: 'biblioteca', component: BibliotecaComponent },
+  { path: 'biblioteca', component: BibliotecaComponent }, 
 
-  // 🔹 Rutas del panel con sus hijos
   {
     path: 'paneladmin',
     component: PanelAdminComponent,
+    canActivate: [AdminGuard], 
     children: [
       { path: 'libros-admin', component: LibrosAdminComponent },
       { path: 'reservas-admin', component: ReservasAdminComponent },
       { path: 'prestamos-admin', component: PrestamosAdminComponent },
       { path: 'reportes-admin', component: ReportesAdminComponent },
-      // { path: 'prestados', component: PrestadosComponent },
     ],
   },
 
