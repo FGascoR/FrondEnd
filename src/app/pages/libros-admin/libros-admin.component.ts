@@ -3,9 +3,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EjemplarService } from '../../services/ejemplar.service';
 import { LibroService } from '../../services/libro.service';
 import { DeweyService } from '../../services/dewey.service';
-import { AutorService } from '../../services/autor.service';        
+import { AutorService } from '../../services/autor.service';         
 import { AutorLibroService } from '../../services/autor-libro.service';
-import { switchMap } from 'rxjs/operators'; 
+import { switchMap } from 'rxjs'; 
 
 declare var bootstrap: any;
 
@@ -24,6 +24,7 @@ export class LibrosAdminComponent implements OnInit {
   ejemplarForm: FormGroup;
   libroForm: FormGroup;
   autorForm: FormGroup; 
+  deweyForm: FormGroup; 
 
   isEditMode = false;
   currentEjemplarId: number | null = null;
@@ -31,6 +32,7 @@ export class LibrosAdminComponent implements OnInit {
   ejemplarModal: any;
   libroModal: any;
   autorModal: any;
+  deweyModal: any; 
 
   constructor(
     private fb: FormBuilder,
@@ -61,6 +63,12 @@ export class LibrosAdminComponent implements OnInit {
       apellidos: ['', Validators.required],
       nacionalidad: ['']
     });
+
+    this.deweyForm = this.fb.group({ 
+      idDewey: ['', [Validators.required, Validators.pattern("^[0-9]*$")]], 
+      categoria: ['', Validators.required],
+      descripcion: ['']
+    });
   }
 
   ngOnInit() {
@@ -74,6 +82,9 @@ export class LibrosAdminComponent implements OnInit {
 
     const autorModalEl = document.getElementById('autorModal');
     if (autorModalEl) this.autorModal = new bootstrap.Modal(autorModalEl);
+
+    const deweyModalEl = document.getElementById('deweyModal');
+    if (deweyModalEl) this.deweyModal = new bootstrap.Modal(deweyModalEl);
   }
 
   loadAllData() {
@@ -202,7 +213,7 @@ export class LibrosAdminComponent implements OnInit {
   }
 
   onAutorSubmit() { 
-    if (this.autorForm. invalid) {
+    if (this.autorForm.invalid) {
       this.autorForm.markAllAsTouched();
       return;
     }
@@ -212,13 +223,35 @@ export class LibrosAdminComponent implements OnInit {
         console.log('Autor creado:', nuevoAutor);
         this.loadAutores(); 
         this.autorModal.hide(); 
-        
         this.libroForm.patchValue({ autor: nuevoAutor });
       },
       error: (err) => console.error('Error al crear el autor', err)
     });
   }
- 
+
+  openDeweyModal() { 
+    this.deweyForm.reset();
+    this.deweyModal.show();
+  }
+
+  onDeweySubmit() { 
+    if (this.deweyForm.invalid) {
+      this.deweyForm.markAllAsTouched();
+      return;
+    }
+
+    this.deweyService.createDewey(this.deweyForm.value).subscribe({
+      next: (nuevoDewey) => {
+        console.log('Categoría Dewey creada:', nuevoDewey);
+        this.loadDeweys(); 
+        this.deweyModal.hide(); 
+        this.libroForm.patchValue({ dewey: nuevoDewey });
+      },
+      error: (err) => console.error('Error al crear Dewey', err)
+    });
+  }
+
+
   compareById(o1: any, o2: any): boolean {
     if (!o1 || !o2) {
       return o1 === o2;
@@ -236,5 +269,4 @@ export class LibrosAdminComponent implements OnInit {
     
     return o1 === o2;
   }
-
 }
