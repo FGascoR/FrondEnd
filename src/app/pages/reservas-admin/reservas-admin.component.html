@@ -1,20 +1,21 @@
 <div class="container mt-4">
-  <div class="row g-3 mb-3">
+  
+  <div class="row g-3 mb-3" [formGroup]="filterForm">
     <div class="col-md-3">
       <label class="form-label">Cliente</label>
-      <input type="text" class="form-control">
+      <input type="text" class="form-control" formControlName="clienteNombre" placeholder="Nombre o Apellido...">
     </div>
     <div class="col-md-3">
       <label class="form-label">Ejemplar</label>
-      <input type="text" class="form-control">
+      <input type="text" class="form-control" formControlName="ejemplarInfo" placeholder="Título o Código...">
     </div>
     <div class="col-md-3">
       <label class="form-label">Fecha de reserva</label>
-      <input type="date" class="form-control">
+      <input type="date" class="form-control" formControlName="fechaReserva">
     </div>
     <div class="col-md-3">
       <label class="form-label">Fecha límite</label>
-      <input type="date" class="form-control">
+      <input type="date" class="form-control" formControlName="fechaExpiracion">
     </div>
   </div>
 
@@ -22,22 +23,107 @@
     <thead class="table-secondary">
       <tr>
         <th>Fecha/Hora de reserva</th>
-        <th>Fecha/Hora límite</th>
+        <th>Fecha límite</th>
         <th>Cliente</th>
-        <th>Ejemplar</th>
+        <th>Ejemplar (Libro)</th>
+        <th>Estado Ejemplar</th>
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
-      <!-- Aquí se mostrarán los libros -->
-    </tbody>
+      <tr *ngFor="let reserva of reservas">
+        <td>{{ reserva.fechaReserva | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>{{ reserva.fechaExpiracion | date: 'dd/MM/yyyy' }}</td>
+        <td>{{ reserva.cliente?.nombres }} {{ reserva.cliente?.apellidoPaterno }}</td>
+        <td>{{ reserva.ejemplar?.libro?.titulo }} (Cód: {{ reserva.ejemplar?.codigoInterno }})</td>
+        <td>
+          <span class="badge" 
+            [ngClass]="{
+              'bg-info text-dark': reserva.ejemplar?.estado === 'Reservado', 
+              'bg-secondary': reserva.ejemplar?.estado !== 'Reservado'
+            }">
+            {{ reserva.ejemplar?.estado }}
+          </span>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-success" (click)="openRegistrarPrestamoModal(reserva)">
+            <i class="bi bi-arrow-right-square-fill me-1"></i> Registrar Préstamo
+          </button>
+        </td>
+      </tr>
+      
+      <tr *ngIf="isLoading">
+        <td colspan="6" class="text-center">Cargando reservas activas...</td>
+      </tr>
+      <tr *ngIf="!isLoading && reservas.length === 0">
+        <td colspan="6" class="text-center">No hay reservas activas para mostrar.</td>
+      </tr>
+      </tbody>
   </table>
+</div>
 
-  <nav aria-label="Paginación" class="mt-3">
-    <ul class="pagination justify-content-center">
-      <li class="page-item disabled">
-        <span class="page-link">1</span>
-      </li>
-      <li class="page-item"><a class="page-link" href="#">></a></li>
-    </ul>
-  </nav>
+<div class="modal fade" id="registrarPrestamoModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"> 
+    <div class="modal-content">
+      <form [formGroup]="registrarPrestamoForm" (ngSubmit)="onRegistrarPrestamoSubmit()">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">Registrar Préstamo</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="fw-bold">Detalles de la Conversión:</h6>
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item px-0">
+                  <strong>Libro:</strong><br>
+                  {{ selectedReserva?.ejemplar?.libro?.titulo }}
+                </li>
+                <li class="list-group-item px-0">
+                  <strong>Ejemplar:</strong><br>
+                  {{ selectedReserva?.ejemplar?.codigoInterno }}
+                </li>
+                <li class="list-group-item px-0">
+                  <strong>Cliente:</strong><br>
+                  {{ selectedReserva?.cliente?.nombres }} {{ selectedReserva?.cliente?.apellidoPaterno }}
+                </li>
+              </ul>
+            </div>
+
+            <div class="col-md-6">
+              <h6 class="fw-bold">Definir Fechas del Préstamo:</h6>
+              <div class="mb-3">
+                <label for="fechaPrestamo" class="form-label">Fecha de Préstamo (Hoy)</label>
+                <input type="date" id="fechaPrestamo" class="form-control" formControlName="fechaPrestamo">
+              </div>
+              <div class="mb-3">
+                <label for="fechaDevolucion" class="form-label">Fecha de Devolución (Límite)</label>
+                <input type="date" id="fechaDevolucion" class="form-control" formControlName="fechaDevolucion">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success" [disabled]="registrarPrestamoForm.invalid">
+            Confirmar Préstamo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+  <div id="confirmationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header bg-success text-white">
+      <strong class="me-auto">¡Éxito!</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body">
+      {{ toastMessage }}
+    </div>
+  </div>
 </div>

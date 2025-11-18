@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms'; 
 import { AppRoutingModule } from './app-routing.module'; 
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http'; 
 import { AuthInterceptor } from './auth.interceptor';
@@ -21,6 +21,7 @@ import { ReservasAdminComponent } from './pages/reservas-admin/reservas-admin.co
 import { PrestamosAdminComponent } from './pages/prestamos-admin/prestamos-admin.component';
 import { ReportesAdminComponent } from './pages/reportes-admin/reportes-admin.component';
 import { InicioAdminComponent } from './pages/inicio-admin/inicio-admin.component'; 
+import { PenalidadesAdminComponent } from './pages/penalidades-admin/penalidades-admin.component'; 
 
 @NgModule({
   declarations: [
@@ -39,12 +40,14 @@ import { InicioAdminComponent } from './pages/inicio-admin/inicio-admin.componen
     ReservasAdminComponent,
     PrestamosAdminComponent,
     ReportesAdminComponent,
-    InicioAdminComponent 
+    InicioAdminComponent,
+    PenalidadesAdminComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule, 
     ReactiveFormsModule, 
+    FormsModule, 
     HttpClientModule
   ],
   providers: [{

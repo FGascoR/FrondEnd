@@ -1,8 +1,32 @@
-.logoCeibos {
-  width: 160px;      
-  max-width: 220px;   
-  height: auto;
+.ceibos-footer {
+  background-color: #2B4D92;
 }
-.footer{
-  background: #2B4D92;
+
+.footer-logo {
+  width: 140px;
+}
+
+.footer-divider {
+  border: none;
+  border-top: 1px solid #7d9cd1;
+  width: 90%;
+  margin: 20px auto;
+}
+
+.social-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: white;
+  color: #2B4D92;
+  font-size: 1.2rem;
+  transition: 0.2s ease-in-out;
+}
+
+.social-icon:hover {
+  transform: scale(1.1);
+  background: #e6e6e6;
 }

@@ -21,12 +21,22 @@ export class LibroService {
       if (params.autor) {
         httpParams = httpParams.set('autor', params.autor);
       }
-      if (params.palabraClaveId) {
-        httpParams = httpParams.set('palabraClaveId', params.palabraClaveId);
+      if (params.deweyId) {
+        httpParams = httpParams.set('deweyId', params.deweyId);
+      }
+      if (params.editorial) {
+        httpParams = httpParams.set('editorial', params.editorial);
+      }
+      if (params.estado) {
+        httpParams = httpParams.set('estado', params.estado);
       }
     }
 
     return this.http.get<any[]>(`${this.apiUrl}/search`, { params: httpParams });
+  }
+
+  getEditoriales(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/editoriales`);
   }
 
   createLibro(libro: any): Observable<any> {

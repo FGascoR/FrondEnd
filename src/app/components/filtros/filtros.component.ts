@@ -1,6 +1,7 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { PalabraClaveService } from '../../services/palabra-clave.service'; 
+import { DeweyService } from '../../services/dewey.service';
+import { LibroService } from '../../services/libro.service'; 
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
@@ -13,21 +14,26 @@ export class FiltrosComponent implements OnInit {
   @Output() onSearch = new EventEmitter<any>();
 
   filterForm: FormGroup;
-  palabrasClave: any[] = [];
+  deweyCategorias: any[] = []; 
+  editoriales: string[] = []; 
 
   constructor(
     private fb: FormBuilder,
-    private palabraClaveService: PalabraClaveService
+    private deweyService: DeweyService,
+    private libroService: LibroService
   ) {
     this.filterForm = this.fb.group({
       titulo: [''],
       autor: [''],
-      palabraClaveId: [null] 
+      deweyId: [null],
+      editorial: [null], 
+      estado: [null]     
     });
   }
 
   ngOnInit() {
-    this.loadPalabrasClave();
+    this.loadDeweys();
+    this.loadEditoriales();
 
     this.filterForm.valueChanges.pipe(
       debounceTime(350), 
@@ -36,16 +42,25 @@ export class FiltrosComponent implements OnInit {
       const cleanFilters: any = {};
       if (values.titulo) cleanFilters.titulo = values.titulo;
       if (values.autor) cleanFilters.autor = values.autor;
-      if (values.palabraClaveId) cleanFilters.palabraClaveId = values.palabraClaveId;
+      if (values.deweyId) cleanFilters.deweyId = values.deweyId; 
+      if (values.editorial) cleanFilters.editorial = values.editorial; 
+      if (values.estado) cleanFilters.estado = values.estado;       
       
       this.onSearch.emit(cleanFilters);
     });
   }
 
-  loadPalabrasClave() {
-    this.palabraClaveService.getPalabrasClave().subscribe({
-      next: (data) => this.palabrasClave = data,
-      error: (err) => console.error('Error al cargar palabras clave', err)
+  loadDeweys() {
+    this.deweyService.getDeweys().subscribe({
+      next: (data) => this.deweyCategorias = data,
+      error: (err) => console.error('Error al cargar categorías', err)
+    });
+  }
+
+  loadEditoriales() {
+    this.libroService.getEditoriales().subscribe({
+      next: (data) => this.editoriales = data,
+      error: (err) => console.error('Error al cargar editoriales', err)
     });
   }
 }

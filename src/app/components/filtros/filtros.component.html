@@ -14,28 +14,33 @@
 
     <div class="mb-3">
       <label class="form-label text-light">Categoría</label>
-      <select class="form-select" formControlName="palabraClaveId">
+      <select class="form-select" formControlName="deweyId"> 
         <option [ngValue]="null">Categoria</option>
-        <option *ngFor="let pc of palabrasClave" [ngValue]="pc.idPalabraClave">
-          {{ pc.descripcion }}
+        <option *ngFor="let cat of deweyCategorias" [ngValue]="cat.idDewey">
+          {{ cat.categoria }}
+        </option>
+      </select>
+    </div>
+    
+    <div class="mb-3">
+      <label class="form-label text-light">Disponibilidad</label>
+      <select class="form-select" formControlName="estado">
+        <option [ngValue]="null">Seleccionar</option>
+        <option value="Disponible">Disponible</option>
+        <option value="Reservado">Reservado</option>
+        <option value="Prestado">Prestado</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label text-light">Editorial</label>
+      <select class="form-select" formControlName="editorial">
+        <option [ngValue]="null">Seleccionar</option>
+        <option *ngFor="let editorial of editoriales" [ngValue]="editorial">
+          {{ editorial }}
         </option>
       </select>
     </div>
 
-    <div class="mb-3">
-      <label class="form-label text-light opacity-50">Disponibilidad</label>
-      <select class="form-select" [disabled]="true">
-        <option>Seleccionar</option>
-      </select>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label text-light opacity-50">Editorial</label>
-      <select class="form-select" [disabled]="true">
-        <option>Seleccionar</option>
-      </select>
-    </div>
-
-    
   </div>
 </div>

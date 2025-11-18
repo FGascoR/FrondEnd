@@ -8,6 +8,8 @@ import { LibrosAdminComponent } from './pages/libros-admin/libros-admin.componen
 import { ReservasAdminComponent } from './pages/reservas-admin/reservas-admin.component';
 import { PrestamosAdminComponent } from './pages/prestamos-admin/prestamos-admin.component';
 import { ReportesAdminComponent } from './pages/reportes-admin/reportes-admin.component';
+import { PenalidadesAdminComponent } from './pages/penalidades-admin/penalidades-admin.component'; 
+import { InicioAdminComponent } from './pages/inicio-admin/inicio-admin.component';
 import { AdminGuard } from './admin.guard';
 
 const routes: Routes = [
@@ -21,9 +23,11 @@ const routes: Routes = [
     canActivate: [AdminGuard], 
     children: [
       { path: 'libros-admin', component: LibrosAdminComponent },
+      { path: 'inicio', component: InicioAdminComponent },
       { path: 'reservas-admin', component: ReservasAdminComponent },
       { path: 'prestamos-admin', component: PrestamosAdminComponent },
       { path: 'reportes-admin', component: ReportesAdminComponent },
+      { path: 'penalidades', component: PenalidadesAdminComponent } 
     ],
   },
 

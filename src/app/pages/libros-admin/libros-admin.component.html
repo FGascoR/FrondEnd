@@ -27,7 +27,7 @@
           <td>{{ ej.libro?.isbn }}</td>
           <td>
             <span class="badge" 
-                  [ngClass]="{'bg-success': ej.estado === 'Disponible', 'bg-warning text-dark': ej.estado === 'Prestado', 'bg-danger': ej.estado === 'En reparación'}">
+                  [ngClass]="{'bg-success': ej.estado === 'Disponible', 'bg-warning text-dark': ej.estado === 'Prestado', 'bg-danger': ej.estado === 'En reparación', 'bg-info text-dark':ej.estado === 'Reservado'}">
               {{ ej.estado }}
             </span>
           </td>

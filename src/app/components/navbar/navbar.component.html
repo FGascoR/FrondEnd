@@ -1,21 +1,40 @@
+<div class="top-bar">
+  <div class="container d-flex justify-content-start">
+    <span class="top-bar-text me-3">
+      <i class="bi bi-telephone-fill me-1"></i> +51 979 343 130
+    </span>
+    <span class="top-bar-text">
+      <i class="bi bi-telephone-fill me-1"></i> +51 979 343 136
+    </span>
+  </div>
+</div>
+
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center" href="#">
       <img src="assets/logo-ceibos.png" alt="Logo" class="logoCeibos me-2" />
     </a>
 
-    <form class="d-flex ms-auto me-3">
-      <input class="form-control me-2" type="search" placeholder="Buscar..." />
-      <button class="btn btn-outline-primary" type="submit">
+    <form class="d-flex ms-auto me-3"> 
+      <input 
+        class="form-control me-2" 
+        type="search" 
+        placeholder="Buscar" 
+        [formControl]="searchTermControl" name="searchTerm"
+      />
+      <button class="btn btn-outline-primary" type="button">
         <i class="bi bi-search"></i>
       </button>
     </form>
 
-<button class="btn btn-primary" (click)="logout()">Cerrar Sesión</button>
-</div>
+      <button class="btn btn-outline-secondary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#historialOffcanvas" (click)="cargarHistorial()">
+        <i class="bi bi-book-fill"></i> Mis Acciones
+      </button>
+      
+      <button class="btn btn-custom-logout" (click)="logout()">Cerrar Sesión</button>
+  </div>
 </nav>
 
 <div class="banner">
   <img src="assets/portada-biblioteca.png" class="img-fluid w-100 object-fit-cover" alt="Portada" />
 </div>
-

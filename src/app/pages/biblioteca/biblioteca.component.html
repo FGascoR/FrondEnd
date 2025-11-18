@@ -1,4 +1,7 @@
-<app-navbar></app-navbar>
+<app-navbar 
+  (onSearch)="handleUniversalSearch($event)" 
+  (onCargarHistorial)="cargarHistorialUsuario()">
+</app-navbar>
 
 <div class="container my-5">
   <div class="row">
@@ -11,8 +14,15 @@
       
       <div class="row g-4">
         <div class="col-12 col-sm-6 col-md-6 col-lg-4" *ngFor="let libro of librosPaginados">
-          <div class="card text-center shadow-sm h-100" style="border:2px solid #2B4D92;">
-            <div class="card-body d-flex flex-column">
+          
+          <div class="card text-center shadow-sm h-100" style="border:2px solid #2B4D92; position: relative;">
+            
+            <span [ngClass]="getDisponibilidadClass(libro)"
+                  style="position: absolute; top: 10px; right: 10px; font-size: 0.8rem; z-index: 2;">
+              {{ getDisponibilidadLibro(libro) }}
+            </span>
+
+            <div class="card-body d-flex flex-column" style="padding-top: 2.5rem;">
               <i class="bi bi-book" style="font-size: 3rem;"></i>
               
               <h6 class="mt-3 fw-bold">{{ libro.titulo }}</h6>
@@ -20,8 +30,8 @@
               <p class="text-muted small">Categoria: {{ libro.dewey?.categoria || 'N/A' }}</p> 
 
               <div class="d-flex justify-content-center gap-3 mt-auto">
-                <button class="btn btn-outline-warning">Reservar</button>
-                <button class="btn btn-secondary">Detalles</button>
+                <button class="btn btn-outline-warning" (click)="openReservaModal(libro)">Reservar</button>
+                <button class="btn btn-outline-primary" (click)="openPrestamoModal(libro)">Prestar</button>
               </div>
             </div>
           </div>
@@ -30,7 +40,7 @@
           <h5>No se encontraron libros.</h5>
         </div>
       </div>
-
+      
       <nav class="mt-4" *ngIf="libros.length > pageSize">
         <ul class="pagination justify-content-center">
           <li class="page-item" [class.disabled]="page === 1">
@@ -47,4 +57,148 @@
         </ul>
       </nav>
 
-    </div> </div> </div> <app-footer></app-footer>
+    </div> 
+  </div> 
+</div> 
+<app-footer></app-footer>
+
+<div class="modal fade" id="reservaModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form [formGroup]="reservaForm" (ngSubmit)="onReservarSubmit()">
+        <div class="modal-header" style="background-color: #2B4D92; color: white;">
+          <h5 class="modal-title">Detalles de Reserva</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-4">
+            <div class="col-md-5">
+              <label class="form-label fw-bold">Libro:</label>
+              <div class="card h-100 text-center">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center p-4">
+                  <i class="bi bi-book" style="font-size: 4rem; color: #6c757d;"></i>
+                  <h5 class="mt-3 mb-1">{{ libroSeleccionado?.titulo }}</h5>
+                  <p class="text-muted">{{ getAutor(libroSeleccionado) }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-7">
+              <label for="fechaReserva" class="form-label fw-bold">Seleccione la fecha de reserva:</label>
+              <input type="date" id="fechaReserva" class="form-control" formControlName="fechaExpiracion">
+              <div class="form-text">MM/DD/YYYY</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="reservaForm.invalid">Confirmar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="prestamoModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form [formGroup]="prestamoForm" (ngSubmit)="onPrestamoSubmit()">
+        <div class="modal-header" style="background-color: #2B4D92; color: white;">
+          <h5 class="modal-title">Detalles de Préstamo</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-4">
+            <div class="col-md-5">
+              <label class="form-label fw-bold">Libro:</label>
+              <div class="card h-100 text-center">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center p-4">
+                  <i class="bi bi-book" style="font-size: 4rem; color: #6c757d;"></i>
+                  <h5 class="mt-3 mb-1">{{ libroSeleccionado?.titulo }}</h5>
+                  <p class="text-muted">{{ getAutor(libroSeleccionado) }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-7">
+              <div class="mb-3">
+                <label for="fechaPrestamo" class="form-label fw-bold">Seleccione la fecha de préstamo:</label>
+                <input type="date" id="fechaPrestamo" class="form-control" formControlName="fechaPrestamo">
+                <div class="form-text">MM/DD/YYYY</div>
+              </div>
+              <div class="mb-3">
+                <label for="fechaDevolucion" class="form-label fw-bold">Seleccione la fecha de entrega:</label>
+                <input type="date" id="fechaDevolucion" class="form-control" formControlName="fechaDevolucion">
+                <div class="form-text">MM/DD/YYYY</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="prestamoForm.invalid">Confirmar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="confirmationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header bg-success text-white">
+      <strong class="me-auto">¡Éxito!</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body">
+      {{ toastMessage }}
+    </div>
+  </div>
+</div>
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="historialOffcanvas">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title">Mis Acciones</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    
+    <div *ngIf="isLoadingHistorial" class="text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoadingHistorial">
+      <h6><i class="bi bi-box-arrow-up-right me-2"></i>Mis Préstamos Activos</h6>
+      <hr>
+      <div *ngIf="misPrestamos.length > 0; else noPrestamos">
+        <ul class="list-group list-group-flush">
+          <li *ngFor="let prestamo of misPrestamos" class="list-group-item">
+            <strong>{{ prestamo.ejemplar.libro.titulo }}</strong>
+            <br>
+            <small>Devolución: {{ prestamo.fechaDevolucion | date: 'dd/MM/yyyy' }}</small>
+          </li>
+        </ul>
+      </div>
+      <ng-template #noPrestamos>
+        <p class="text-muted small" *ngIf="misReservas.length === 0">Aún no has realizado una acción.</p>
+        <p class="text-muted small" *ngIf="misReservas.length > 0">No tienes préstamos activos.</p>
+      </ng-template>
+
+      <h6 class="mt-4"><i class="bi bi-bookmark-check-fill me-2"></i>Mis Reservas Activas</h6>
+      <hr>
+      <div *ngIf="misReservas.length > 0; else noReservas">
+        <ul class="list-group list-group-flush">
+          <li *ngFor="let reserva of misReservas" class="list-group-item">
+            <strong>{{ reserva.ejemplar.libro.titulo }}</strong>
+            <br>
+            <small>Expira: {{ reserva.fechaExpiracion | date: 'dd/MM/yyyy' }}</small>
+          </li>
+        </ul>
+      </div>
+      <ng-template #noReservas>
+         <p class="text-muted small" *ngIf="misPrestamos.length === 0">Aún no has realizado una acción.</p>
+         <p class="text-muted small" *ngIf="misPrestamos.length > 0">No tienes reservas activas.</p>
+      </ng-template>
+
+    </div>
+  </div>
+</div>
