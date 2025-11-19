@@ -71,4 +71,27 @@ export class PenalidadesAdminComponent implements OnInit, OnDestroy {
     if (estado === 'Pagada') return 'badge bg-success';
     return 'badge bg-secondary';
   }
+  
+  procesarPago(penalidad: any) {
+    
+    if (penalidad.estado === 'Pagada') {
+      alert('El pago ya se ha realizado anteriormente. No se requiere ninguna acción.');
+      return;
+    }
+
+    if (!confirm('¿Está seguro de marcar esta penalidad como Pagada?')) {
+      return;
+    }
+
+    this.penalidadService.pagarPenalidad(penalidad.idPenalidad).subscribe({
+      next: (res) => {
+        penalidad.estado = 'Pagada';
+        alert('La penalidad ha sido marcada como Pagada exitosamente.');
+      },
+      error: (err) => {
+        console.error(err);
+        alert('Hubo un error al intentar procesar el pago.');
+      }
+    });
+  }
 }

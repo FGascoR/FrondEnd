@@ -26,7 +26,7 @@
         <th>Cliente</th>
         <th>Fecha</th>
         <th>Motivo</th>
-        <th>Monto (S/.)</th>
+        <th class="text-end">Monto (S/.)</th>
         <th>Estado</th>
         <th>Acciones</th>
       </tr>
@@ -36,16 +36,23 @@
         <td>{{ penalidad.cliente?.nombres }} {{ penalidad.cliente?.apellidoPaterno }}</td>
         <td>{{ penalidad.fechaPenalidad | date: 'dd/MM/yyyy' }}</td>
         <td>{{ penalidad.motivo }}</td>
-        <td>{{ penalidad.monto | number: '1.2-2' }}</td>
+        
+        <td class="text-end">{{ penalidad.monto | number: '1.2-2' }}</td>
+        
         <td>
           <span [ngClass]="getEstadoClass(penalidad.estado)">
             {{ penalidad.estado }}
           </span>
         </td>
         <td>
-          <button class="btn btn-sm btn-success" [disabled]="penalidad.estado === 'Pagada'">
+          <button *ngIf="penalidad.estado !== 'Pagada'" 
+                  class="btn btn-sm btn-success" 
+                  (click)="procesarPago(penalidad)">
             Marcar como Pagada
           </button>
+          <span *ngIf="penalidad.estado === 'Pagada'" class="text-muted small">
+            <i class="bi bi-check-circle-fill"></i> Pagado
+          </span>
         </td>
       </tr>
       

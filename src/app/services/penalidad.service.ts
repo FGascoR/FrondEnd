@@ -20,6 +20,6 @@ export class PenalidadService {
     }
     return this.http.get<any[]>(this.apiUrl, { params: httpParams });
   }
-
-
+  pagarPenalidad(idPenalidad: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${idPenalidad}/pagar`, {});  }
 }

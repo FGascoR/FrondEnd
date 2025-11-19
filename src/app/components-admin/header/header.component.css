@@ -5,3 +5,17 @@ header {
   padding-bottom: 30px;
   padding-top: 30px;
 }
+
+.btn-custom-login {
+  background-color: #2B4D92;
+  color: white;
+  border-color: #2B4D92;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+}
+
+.btn-custom-login:hover {
+  background-color: #24417a; 
+  border-color: #24417a;
+  color: white;
+}
