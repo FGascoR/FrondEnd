@@ -1,13 +1,5 @@
 <div class="container mt-4">
   
-  <div class="d-flex justify-content-end mb-3">
-    <div>
-      <button class="btn btn-success" (click)="openDevolucionModal()">
-        <i class="bi bi-journal-check me-1"></i> Registrar Devolución
-      </button>
-    </div>
-  </div>
-
   <div class="row g-3 mb-3" [formGroup]="filterForm">
     <div class="col-md-3">
       <label class="form-label">Cliente</label>
@@ -31,11 +23,11 @@
     <thead class="table-secondary">
       <tr>
         <th>Fecha Préstamo</th>
-        <th>Fecha Devolución (Límite)</th>
+        <th>Fecha Límite</th>
         <th>Cliente</th>
         <th>Ejemplar (Libro)</th>
         <th>Estado</th>
-      </tr>
+        <th>Acciones</th> </tr>
     </thead>
     <tbody>
       <tr *ngFor="let prestamo of prestamos">
@@ -48,13 +40,18 @@
             {{ getEstadoPrestamo(prestamo) }}
           </span>
         </td>
+        <td>
+          <button class="btn btn-sm btn-info text-white" (click)="openDevolucionModal(prestamo)">
+            <i class="bi bi-box-arrow-in-down-left me-1"></i> Devolver
+          </button>
+        </td>
       </tr>
       
       <tr *ngIf="isLoading">
-        <td colspan="5" class="text-center">Cargando préstamos activos...</td>
+        <td colspan="6" class="text-center">Cargando préstamos activos...</td>
       </tr>
       <tr *ngIf="!isLoading && prestamos.length === 0">
-        <td colspan="5" class="text-center">No hay préstamos activos para mostrar.</td>
+        <td colspan="6" class="text-center">No hay préstamos activos para mostrar.</td>
       </tr>
     </tbody>
   </table>
@@ -62,67 +59,43 @@
 
 
 <div class="modal fade" id="devolucionModal" tabindex="-1" data-bs-backdrop="static">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
+  <div class="modal-dialog modal-lg"> <div class="modal-content">
       <form [formGroup]="devolucionForm" (ngSubmit)="onDevolucionSubmit()">
-        <div class="modal-header bg-success text-white">
+        <div class="modal-header bg-info text-white">
           <h5 class="modal-title">Registrar Devolución</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         
         <div class="modal-body">
-          <div class="row g-4">
-            
-            <div class="col-md-5">
-              <h6 class="fw-bold">Paso 1: Buscar Cliente</h6>
-              <div class="mb-3">
-                <label class="form-label">Filtrar Cliente:</label>
-                <input type="text" class="form-control" formControlName="clienteFilter" placeholder="Buscar por nombre o apellido...">
+          <div class="alert alert-light border mb-3">
+            <div class="row">
+              <div class="col-md-6">
+                <strong>Cliente:</strong> {{ selectedPrestamo?.cliente?.nombres }} {{ selectedPrestamo?.cliente?.apellidoPaterno }}
               </div>
-              <div class="mb-3">
-                <label for="clienteSelect" class="form-label">Seleccionar Cliente:</label>
-                <select id="clienteSelect" class="form-select" formControlName="clienteId">
-                  <option [ngValue]="null" disabled>
-                    {{ isLoadingClientes ? 'Cargando...' : 'Seleccione un cliente' }}
-                  </option>
-                  <option *ngFor="let cliente of filteredClientes" [ngValue]="cliente.idCliente">
-                    {{ cliente.nombres }} {{ cliente.apellidoPaterno }}
-                  </option>
-                </select>
+              <div class="col-md-6">
+                <strong>Libro:</strong> {{ selectedPrestamo?.ejemplar?.libro?.titulo }}
               </div>
-              
-              <hr class="my-4">
-
-              <h6 class="fw-bold">Paso 2: Seleccionar Préstamo a Devolver</h6>
-              <div *ngIf="isLoadingPrestamosCliente" class="text-center">
-                <div class="spinner-border spinner-border-sm" role="status"></div>
+              <div class="col-md-6">
+                <strong>Ejemplar:</strong> {{ selectedPrestamo?.ejemplar?.codigoInterno }}
               </div>
-              <div *ngIf="!isLoadingPrestamosCliente && prestamosDelCliente.length > 0">
-                <div class="list-group" style="max-height: 250px; overflow-y: auto;">
-                  <label *ngFor="let p of prestamosDelCliente" class="list-group-item list-group-item-action">
-                    <input class="form-check-input me-2" type="radio" [value]="p.idPrestamo" formControlName="prestamoId">
-                    <strong>{{ p.ejemplar?.libro?.titulo }}</strong>
-                    <small class="d-block text-muted">Devolución: {{ p.fechaDevolucion | date: 'dd/MM/yyyy' }}</small>
-                  </label>
-                </div>
-              </div>
-              <div *ngIf="!isLoadingPrestamosCliente && prestamosDelCliente.length === 0 && devolucionForm.get('clienteId')?.value" class="alert alert-warning small p-2">
-                Este cliente no tiene préstamos activos.
+              <div class="col-md-6">
+                <strong>Fecha Límite:</strong> {{ selectedPrestamo?.fechaDevolucion | date: 'dd/MM/yyyy' }}
               </div>
             </div>
+          </div>
 
-            <div class="col-md-7 border-start">
+          <div class="row">
+            <div class="col-md-12">
+              <h6 class="fw-bold">Detalles de la Devolución</h6>
               
-              <h6 class="fw-bold">Paso 3: Detalles de la Devolución</h6>
               <div class="mb-3">
                 <label class="form-label">Estado del ejemplar devuelto:</label>
-                
                 <select class="form-select" formControlName="estadoEjemplar">
                   <option value="Bueno">Bueno</option>
                   <option value="Regular">Regular</option>
                   <option value="Malo">Malo</option>
                 </select>
-                <div class="form-text"></div>
+                <div class="form-text">El ejemplar volverá al estado "Disponible".</div>
               </div>
               
               <div class="mb-3">
@@ -132,21 +105,50 @@
 
               <hr class="my-4">
 
-              <h6 class="fw-bold">Paso 4: Penalidad (Opcional)</h6>
-              <div class="form-check form-switch mb-3">
-                <input class="form-check-input" type="checkbox" role="switch" id="addPenalidadCheck" formControlName="addPenalidad">
-                <label class="form-check-label" for="addPenalidadCheck">Registrar Penalidad</label>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold m-0">Penalidad (Opcional)</h6>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" role="switch" id="addPenalidadCheck" formControlName="addPenalidad">
+                  <label class="form-check-label" for="addPenalidadCheck">Aplicar</label>
+                </div>
               </div>
 
-              <div *ngIf="devolucionForm.get('addPenalidad')?.value">
-                <div class="row">
-                  <div class="col-md-4">
-                    <label class="form-label">Monto (S/.)</label>
-                    <input type="number" class="form-control" formControlName="montoPenalidad">
+              <div *ngIf="devolucionForm.get('addPenalidad')?.value" class="card bg-light border-0 p-3">
+                
+                <div class="mb-3">
+                  <label class="form-label small fw-bold">Tipo de Penalidad:</label>
+                  <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" formControlName="tipoPenalidad" id="tipoMonetaria" value="Monetaria">
+                    <label class="btn btn-outline-danger" for="tipoMonetaria">
+                      <i class="bi bi-cash-coin me-2"></i> Monetaria
+                    </label>
+                  
+                    <input type="radio" class="btn-check" formControlName="tipoPenalidad" id="tipoSuspension" value="Suspension">
+                    <label class="btn btn-outline-warning" for="tipoSuspension">
+                      <i class="bi bi-slash-circle me-2"></i> Suspensión / Otro
+                    </label>
                   </div>
-                  <div class="col-md-8">
-                    <label class="form-label">Motivo de la Penalidad</label>
-                    <input type="text" class="form-control" formControlName="motivo"> 
+                </div>
+
+                <div class="row">
+                  <div class="col-md-4" *ngIf="devolucionForm.get('tipoPenalidad')?.value === 'Monetaria'">
+                    <label class="form-label">Monto (S/.)</label>
+                    <div class="input-group">
+                      <span class="input-group-text">S/.</span>
+                      <input type="number" class="form-control" formControlName="montoPenalidad" placeholder="0.00">
+                    </div>
+                    <div *ngIf="devolucionForm.get('montoPenalidad')?.invalid && devolucionForm.get('montoPenalidad')?.touched" class="text-danger small">
+                      Requerido.
+                    </div>
+                  </div>
+
+                  <div [ngClass]="devolucionForm.get('tipoPenalidad')?.value === 'Monetaria' ? 'col-md-8' : 'col-md-12'">
+                    <label class="form-label">Motivo / Detalle</label>
+                    <input type="text" class="form-control" formControlName="motivo" 
+                           placeholder="{{ devolucionForm.get('tipoPenalidad')?.value === 'Monetaria' ? '' : '' }}">
+                    <div *ngIf="devolucionForm.get('motivo')?.invalid && devolucionForm.get('motivo')?.touched" class="text-danger small">
+                      El motivo es obligatorio.
+                    </div>
                   </div>
                 </div>
               </div>
@@ -157,7 +159,7 @@
         
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-success" [disabled]="devolucionForm.invalid">
+          <button type="submit" class="btn btn-info text-white" [disabled]="devolucionForm.invalid">
             Confirmar Devolución
           </button>
         </div>

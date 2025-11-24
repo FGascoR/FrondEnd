@@ -14,24 +14,20 @@
     <a class="navbar-brand d-flex align-items-center" href="#">
       <img src="assets/logo-ceibos.png" alt="Logo" class="logoCeibos me-2" />
     </a>
-
-    <form class="d-flex ms-auto me-3"> 
-      <input 
-        class="form-control me-2" 
-        type="search" 
-        placeholder="Buscar" 
-        [formControl]="searchTermControl" name="searchTerm"
-      />
-      <button class="btn btn-outline-primary" type="button">
-        <i class="bi bi-search"></i>
-      </button>
-    </form>
-
-      <button class="btn btn-outline-secondary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#historialOffcanvas" (click)="cargarHistorial()">
-        <i class="bi bi-book-fill"></i> 
+    
+    <div class="ms-auto d-flex gap-3">
+      
+      <button *ngIf="!isAdmin" class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#historialOffcanvas" (click)="cargarHistorial()">
+        <i class="bi bi-book-fill"></i> Mis Acciones
       </button>
       
-      <button class="btn btn-custom-logout" (click)="logout()">Cerrar Sesión</button>
+      <button *ngIf="!isAdmin" class="btn btn-custom-logout" (click)="logout()">Cerrar Sesión</button>
+
+      <button *ngIf="isAdmin" class="btn btn-custom-logout" (click)="irAlPanel()">
+        <i class="bi bi-arrow-left-circle me-2"></i> Regresar a Panel
+      </button>
+
+    </div>
   </div>
 </nav>
 

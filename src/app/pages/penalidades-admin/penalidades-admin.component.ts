@@ -4,6 +4,9 @@ import { Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PenalidadService } from '../../services/penalidad.service';
 
+// Declaramos Bootstrap para controlar modales y toasts vía JS
+declare var bootstrap: any;
+
 @Component({
   selector: 'app-penalidades-admin',
   templateUrl: './penalidades-admin.component.html',
@@ -15,6 +18,11 @@ export class PenalidadesAdminComponent implements OnInit, OnDestroy {
   isLoading = true;
   filterForm: FormGroup;
   private filterSub: Subscription | undefined;
+
+  resolucionModal: any;
+  confirmationToast: any;
+  toastMessage: string = '';
+  selectedPenalidad: any = null; 
 
   constructor(
     private fb: FormBuilder,
@@ -30,6 +38,12 @@ export class PenalidadesAdminComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadPenalidades();
 
+    const modalEl = document.getElementById('resolucionModal');
+    if (modalEl) this.resolucionModal = new bootstrap.Modal(modalEl);
+
+    const toastEl = document.getElementById('confirmationToast');
+    if (toastEl) this.confirmationToast = new bootstrap.Toast(toastEl);
+
     this.filterSub = this.filterForm.valueChanges.pipe(
       debounceTime(400),
       distinctUntilChanged()
@@ -42,7 +56,6 @@ export class PenalidadesAdminComponent implements OnInit, OnDestroy {
 
   loadPenalidades(filtros: any = null) {
     this.isLoading = true;
-    
     let cleanFilters: any = {};
     if (filtros) {
       if (filtros.clienteNombre) cleanFilters.clienteNombre = filtros.clienteNombre;
@@ -56,12 +69,10 @@ export class PenalidadesAdminComponent implements OnInit, OnDestroy {
       next: (data) => {
         this.penalidades = data;
         this.isLoading = false;
-        console.log('Penalidades cargadas:', data);
       },
       error: (err) => {
         console.error('Error al cargar penalidades', err);
         this.isLoading = false;
-        alert('No se pudieron cargar las penalidades.');
       }
     });
   }
@@ -69,29 +80,41 @@ export class PenalidadesAdminComponent implements OnInit, OnDestroy {
   getEstadoClass(estado: string): string {
     if (estado === 'Pendiente') return 'badge bg-danger';
     if (estado === 'Pagada') return 'badge bg-success';
-    return 'badge bg-secondary';
+    if (estado === 'Concluida') return 'badge bg-secondary';
+    return 'badge bg-light text-dark';
   }
   
-  procesarPago(penalidad: any) {
-    
-    if (penalidad.estado === 'Pagada') {
-      alert('El pago ya se ha realizado anteriormente. No se requiere ninguna acción.');
-      return;
-    }
+  openResolucionModal(penalidad: any) {
+    this.selectedPenalidad = penalidad;
+    this.resolucionModal.show();
+  }
 
-    if (!confirm('¿Está seguro de marcar esta penalidad como Pagada?')) {
-      return;
-    }
+  confirmarResolucion() {
+    if (!this.selectedPenalidad) return;
 
-    this.penalidadService.pagarPenalidad(penalidad.idPenalidad).subscribe({
+    this.penalidadService.pagarPenalidad(this.selectedPenalidad.idPenalidad).subscribe({
       next: (res) => {
-        penalidad.estado = 'Pagada';
-        alert('La penalidad ha sido marcada como Pagada exitosamente.');
+        this.resolucionModal.hide(); 
+        
+        const esMonetaria = this.selectedPenalidad.tipo === 'Monetaria';
+        
+        this.showToast(esMonetaria 
+          ? '¡Pago registrado correctamente!' 
+          : '¡Penalidad concluida exitosamente!');
+        
+        this.loadPenalidades(); 
       },
       error: (err) => {
         console.error(err);
-        alert('Hubo un error al intentar procesar el pago.');
+        alert('Hubo un error al intentar procesar la acción.'); 
       }
     });
+  }
+
+  showToast(message: string) {
+    this.toastMessage = message;
+    if (this.confirmationToast) {
+      this.confirmationToast.show();
+    }
   }
 }

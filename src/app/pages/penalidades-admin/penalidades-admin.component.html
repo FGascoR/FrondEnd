@@ -12,6 +12,7 @@
         <option [ngValue]="null">Todos</option>
         <option value="Pendiente">Pendiente</option>
         <option value="Pagada">Pagada</option>
+        <option value="Concluida">Concluida</option>
       </select>
     </div>
     <div class="col-md-4">
@@ -25,6 +26,7 @@
       <tr>
         <th>Cliente</th>
         <th>Fecha</th>
+        <th>Tipo</th> 
         <th>Motivo</th>
         <th class="text-end">Monto (S/.)</th>
         <th>Estado</th>
@@ -35,9 +37,24 @@
       <tr *ngFor="let penalidad of penalidades">
         <td>{{ penalidad.cliente?.nombres }} {{ penalidad.cliente?.apellidoPaterno }}</td>
         <td>{{ penalidad.fechaPenalidad | date: 'dd/MM/yyyy' }}</td>
+        
+        <td>
+          <span class="badge rounded-pill" 
+                [ngClass]="penalidad.tipo === 'Monetaria' ? 'bg-warning text-dark' : 'bg-info text-dark'">
+            {{ penalidad.tipo || 'Monetaria' }}
+          </span>
+        </td>
+
         <td>{{ penalidad.motivo }}</td>
         
-        <td class="text-end">{{ penalidad.monto | number: '1.2-2' }}</td>
+        <td class="text-end">
+          <span *ngIf="penalidad.tipo === 'Monetaria'">
+            {{ penalidad.monto | number: '1.2-2' }}
+          </span>
+          <span *ngIf="penalidad.tipo !== 'Monetaria'" class="text-muted small">
+            -
+          </span>
+        </td>
         
         <td>
           <span [ngClass]="getEstadoClass(penalidad.estado)">
@@ -45,23 +62,87 @@
           </span>
         </td>
         <td>
-          <button *ngIf="penalidad.estado !== 'Pagada'" 
-                  class="btn btn-sm btn-success" 
-                  (click)="procesarPago(penalidad)">
-            Marcar como Pagada
+          <button *ngIf="penalidad.estado === 'Pendiente'" 
+                  class="btn btn-sm"
+                  [ngClass]="penalidad.tipo === 'Monetaria' ? 'btn-success' : 'btn-primary'" 
+                  (click)="openResolucionModal(penalidad)">
+            
+            <i class="bi" [ngClass]="penalidad.tipo === 'Monetaria' ? 'bi-cash-coin' : 'bi-unlock-fill'"></i>
+            {{ penalidad.tipo === 'Monetaria' ? 'Marcar como Pagado' : 'Concluir Penalidad' }}
           </button>
-          <span *ngIf="penalidad.estado === 'Pagada'" class="text-muted small">
-            <i class="bi bi-check-circle-fill"></i> Pagado
+
+          <span *ngIf="penalidad.estado !== 'Pendiente'" class="text-muted small">
+            <i class="bi bi-check-all"></i> 
+            {{ penalidad.estado === 'Pagada' ? 'Pagado' : 'Concluida' }}
           </span>
         </td>
       </tr>
       
       <tr *ngIf="isLoading">
-        <td colspan="6" class="text-center">Cargando penalidades...</td>
+        <td colspan="7" class="text-center">Cargando penalidades...</td>
       </tr>
       <tr *ngIf="!isLoading && penalidades.length === 0">
-        <td colspan="6" class="text-center">No hay penalidades para mostrar.</td>
+        <td colspan="7" class="text-center">No hay penalidades para mostrar.</td>
       </tr>
     </tbody>
   </table>
+</div>
+
+<div class="modal fade" id="resolucionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header text-white"
+           [ngClass]="selectedPenalidad?.tipo === 'Monetaria' ? 'bg-success' : 'bg-primary'">
+        <h5 class="modal-title">
+          {{ selectedPenalidad?.tipo === 'Monetaria' ? 'Registrar Pago' : 'Concluir Penalidad' }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      
+      <div class="modal-body">
+        <p>¿Está seguro de que desea continuar?</p>
+        
+        <div class="card bg-light border-0 p-3 mb-3">
+          <div class="row">
+            <div class="col-12 mb-2">
+              <strong>Cliente:</strong> {{ selectedPenalidad?.cliente?.nombres }} {{ selectedPenalidad?.cliente?.apellidoPaterno }}
+            </div>
+            <div class="col-12 mb-2">
+              <strong>Motivo:</strong> {{ selectedPenalidad?.motivo }}
+            </div>
+            
+            <div class="col-12" *ngIf="selectedPenalidad?.tipo === 'Monetaria'">
+              <strong>Monto a Pagar:</strong> <span class="fs-5 text-success fw-bold ms-2">S/. {{ selectedPenalidad?.monto | number:'1.2-2' }}</span>
+            </div>
+            
+            <div class="col-12" *ngIf="selectedPenalidad?.tipo !== 'Monetaria'">
+              <span class="text-primary"><i class="bi bi-info-circle me-1"></i> Se levantará la suspensión/sanción asociada.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" 
+                class="btn text-white"
+                [ngClass]="selectedPenalidad?.tipo === 'Monetaria' ? 'btn-success' : 'btn-primary'"
+                (click)="confirmarResolucion()">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+  <div id="confirmationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header bg-success text-white">
+      <strong class="me-auto">¡Éxito!</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body">
+      {{ toastMessage }}
+    </div>
+  </div>
 </div>

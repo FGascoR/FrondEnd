@@ -3,10 +3,10 @@ import { PrestamoService } from '../../services/prestamo.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'; 
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators'; 
 import { Subscription } from 'rxjs'; 
-import { ClienteService } from '../../services/cliente.service';
-import { DevolucionService } from '../../services/devolucion.service';
+import { DevolucionService } from '../../services/devolucion.service'; 
 
 declare var bootstrap: any; 
+
 @Component({
   selector: 'app-prestamos-admin',
   templateUrl: './prestamos-admin.component.html',
@@ -14,26 +14,20 @@ declare var bootstrap: any;
 })
 export class PrestamosAdminComponent implements OnInit, OnDestroy { 
 
-  prestamos: any[] = [];
+  prestamos: any[] = []; 
   isLoading = true;
   filterForm: FormGroup;
   private filterSub: Subscription | undefined;
 
   devolucionModal: any;
   devolucionForm: FormGroup;
-  clientes: any[] = [];
-  filteredClientes: any[] = [];
-  isLoadingClientes = false;
-  prestamosDelCliente: any[] = []; 
-  isLoadingPrestamosCliente = false;
-  
+  selectedPrestamo: any = null;
   confirmationToast: any;
   toastMessage: string = '';
 
   constructor(
     private prestamoService: PrestamoService,
     private fb: FormBuilder,
-    private clienteService: ClienteService, 
     private devolucionService: DevolucionService 
   ) {
     this.filterForm = this.fb.group({
@@ -44,20 +38,17 @@ export class PrestamosAdminComponent implements OnInit, OnDestroy {
     });
 
     this.devolucionForm = this.fb.group({
-      clienteFilter: [''],
-      clienteId: [null, Validators.required],
-      prestamoId: [null, Validators.required],
-      estadoEjemplar: ['Bueno', Validators.required], 
+      estadoEjemplar: ['Bueno', Validators.required],
       observaciones: [''],
       addPenalidad: [false],
-      montoPenalidad: [null],
-      motivo: [''] 
+      tipoPenalidad: ['Monetaria'],
+      montoPenalidad: [{ value: null, disabled: true }],
+      motivo: ['']
     });
   }
 
   ngOnInit(): void {
     this.loadPrestamos(); 
-    this.loadClientes(); 
 
     const modalEl = document.getElementById('devolucionModal');
     if (modalEl) this.devolucionModal = new bootstrap.Modal(modalEl);
@@ -73,97 +64,97 @@ export class PrestamosAdminComponent implements OnInit, OnDestroy {
     this.setupModalFormListeners();
   }
 
-  loadClientes() {
-    this.isLoadingClientes = true;
-    this.clienteService.getAllClientes().subscribe({
+  ngOnDestroy(): void {
+    if (this.filterSub) this.filterSub.unsubscribe();
+  }
+
+  loadPrestamos(filtros: any = null) {
+    this.isLoading = true;
+    let cleanFilters: any = {};
+    if (filtros) {
+        if (filtros.clienteNombre) cleanFilters.clienteNombre = filtros.clienteNombre;
+        if (filtros.ejemplarInfo) cleanFilters.ejemplarInfo = filtros.ejemplarInfo;
+        if (filtros.fechaPrestamo) cleanFilters.fechaPrestamo = filtros.fechaPrestamo;
+        if (filtros.fechaDevolucion) cleanFilters.fechaDevolucion = filtros.fechaDevolucion;
+    } else {
+        cleanFilters = this.filterForm.value;
+    }
+
+    this.prestamoService.getAllPrestamos(cleanFilters).subscribe({
       next: (data) => {
-        this.clientes = data;
-        this.filteredClientes = data; 
-        this.isLoadingClientes = false;
+        this.prestamos = data;
+        this.isLoading = false;
       },
       error: (err) => {
-        console.error('Error al cargar clientes', err);
-        this.isLoadingClientes = false;
+        this.isLoading = false;
       }
     });
   }
-
+  
   setupModalFormListeners() {
-    this.devolucionForm.get('clienteFilter')?.valueChanges
-      .pipe(debounceTime(300))
-      .subscribe(value => this.filterClientes(value));
-
-    this.devolucionForm.get('clienteId')?.valueChanges.subscribe(clienteId => {
-      if (clienteId) {
-        this.isLoadingPrestamosCliente = true;
-        this.prestamoService.getPrestamosActivosByCliente(clienteId).subscribe(data => {
-          this.prestamosDelCliente = data;
-          this.isLoadingPrestamosCliente = false;
-        });
-      } else {
-        this.prestamosDelCliente = [];
-      }
+    
+    this.devolucionForm.get('addPenalidad')?.valueChanges.subscribe(isActive => {
+        this.updatePenalidadValidators(isActive, this.devolucionForm.get('tipoPenalidad')?.value);
     });
 
-    this.devolucionForm.get('addPenalidad')?.valueChanges.subscribe(checked => {
+    this.devolucionForm.get('tipoPenalidad')?.valueChanges.subscribe(tipo => {
+        this.updatePenalidadValidators(this.devolucionForm.get('addPenalidad')?.value, tipo);
+    });
+  }
+
+  updatePenalidadValidators(isActive: boolean, tipo: string) {
       const montoControl = this.devolucionForm.get('montoPenalidad');
       const motivoControl = this.devolucionForm.get('motivo');
-      if (checked) {
-        montoControl?.setValidators([Validators.required, Validators.min(0.01)]);
+
+      if (isActive) {
         motivoControl?.setValidators([Validators.required]);
+        
+        if (tipo === 'Monetaria') {
+          montoControl?.setValidators([Validators.required, Validators.min(0.01)]);
+          montoControl?.enable({ emitEvent: false });
+        } else {
+          montoControl?.clearValidators();
+          montoControl?.setValue(null, { emitEvent: false });
+          montoControl?.disable({ emitEvent: false }); 
+        }
       } else {
         montoControl?.clearValidators();
+        montoControl?.setValue(null, { emitEvent: false });
+        montoControl?.disable({ emitEvent: false });
+        
         motivoControl?.clearValidators();
+        motivoControl?.setValue('', { emitEvent: false });
       }
-      montoControl?.updateValueAndValidity();
-      motivoControl?.updateValueAndValidity();
-    });
-  }
 
-  filterClientes(query: string) {
-    if (!query || query.trim() === '') {
-      this.filteredClientes = this.clientes;
-      return;
-    }
-    const lowerQuery = query.toLowerCase().trim();
+      montoControl?.updateValueAndValidity({ emitEvent: false });
+      motivoControl?.updateValueAndValidity({ emitEvent: false });
+  }
+  
+  openDevolucionModal(prestamo: any) {
+    this.selectedPrestamo = prestamo;
     
-    this.filteredClientes = this.clientes.filter(c => {
-      const nombres = c.nombres?.toLowerCase() || '';
-      const apellidoPaterno = c.apellidoPaterno?.toLowerCase() || '';
-      const apellidoMaterno = c.apellidoMaterno?.toLowerCase() || ''; 
-      const email = c.email?.toLowerCase() || '';
-
-      return nombres.includes(lowerQuery) ||
-             apellidoPaterno.includes(lowerQuery) ||
-             apellidoMaterno.includes(lowerQuery) ||
-             email.includes(lowerQuery);
-    });
-  }
-
-  openDevolucionModal() {
     this.devolucionForm.reset({
-      clienteFilter: '',
-      clienteId: null,
-      prestamoId: null,
       estadoEjemplar: 'Bueno',
       observaciones: '',
       addPenalidad: false,
+      tipoPenalidad: 'Monetaria',
       montoPenalidad: null,
-      motivoPenalidad: ''
+      motivo: ''
     });
-    this.prestamosDelCliente = [];
-    this.filteredClientes = this.clientes;
+    
+    this.updatePenalidadValidators(false, 'Monetaria');
+
     this.devolucionModal.show();
   }
 
   onDevolucionSubmit() {
-    if (this.devolucionForm.invalid) {
-      this.devolucionForm.markAllAsTouched();
+    if (this.devolucionForm.invalid || !this.selectedPrestamo) {
+      this.devolucionForm.markAllAsTouched(); 
       return;
     }
 
     const form = this.devolucionForm.value;
-    const prestamoId = form.prestamoId;
+    const prestamoId = this.selectedPrestamo.idPrestamo; 
 
     const devolucionPayload: any = {
       estadoEjemplar: form.estadoEjemplar,
@@ -173,20 +164,21 @@ export class PrestamosAdminComponent implements OnInit, OnDestroy {
 
     if (form.addPenalidad) {
       devolucionPayload.penalidad = {
-        monto: form.montoPenalidad,
+        tipo: form.tipoPenalidad,
+        monto: form.tipoPenalidad === 'Monetaria' ? form.montoPenalidad : 0,
         motivo: form.motivo 
       };
     }
 
     this.devolucionService.registrarDevolucion(devolucionPayload, prestamoId).subscribe({
-      next: (data) => {
+      next: () => {
         this.devolucionModal.hide();
         this.showToast('¡Devolución registrada con éxito!');
         this.loadPrestamos(); 
       },
       error: (err) => {
         console.error('Error al registrar devolución', err);
-        alert(err.error?.message || 'No se pudo registrar la devolución.');
+        alert('No se pudo registrar la devolución.');
       }
     });
   }
@@ -198,45 +190,13 @@ export class PrestamosAdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    if (this.filterSub) this.filterSub.unsubscribe();
-  }
-
-  loadPrestamos(filtros: any = null) {
-    this.isLoading = true;
-
-    let cleanFilters: any = {};
-    if (filtros) {
-        if (filtros.clienteNombre) cleanFilters.clienteNombre = filtros.clienteNombre;
-        if (filtros.ejemplarInfo) cleanFilters.ejemplarInfo = filtros.ejemplarInfo;
-        if (filtros.fechaPrestamo) cleanFilters.fechaPrestamo = filtros.fechaPrestamo;
-        if (filtros.fechaDevolucion) cleanFilters.fechaDevolucion = filtros.fechaDevolucion;
-    }
-
-    this.prestamoService.getAllPrestamos(cleanFilters).subscribe({
-      next: (data) => {
-        this.prestamos = data;
-        this.isLoading = false;
-        console.log('Préstamos cargados en admin:', data);
-      },
-      error: (err) => {
-        console.error('Error al cargar préstamos en admin', err);
-        this.isLoading = false;
-        alert('No se pudieron cargar los préstamos.');
-      }
-    });
-  }
-  
   getEstadoPrestamo(prestamo: any): string {
     if (prestamo.ejemplar?.estado === 'Prestado') {
       const hoy = new Date();
       const fechaDev = new Date(prestamo.fechaDevolucion);
       hoy.setHours(0, 0, 0, 0);
       fechaDev.setHours(0, 0, 0, 0);
-      
-      if (hoy > fechaDev) {
-        return 'Vencido';
-      }
+      if (hoy > fechaDev) return 'Vencido';
       return 'Activo (Prestado)';
     }
     if (prestamo.ejemplar?.estado === 'Disponible' || prestamo.ejemplar?.estado === 'En reparación') {
@@ -249,7 +209,7 @@ export class PrestamosAdminComponent implements OnInit, OnDestroy {
     const estado = this.getEstadoPrestamo(prestamo);
     if (estado === 'Vencido') return 'badge bg-danger';
     if (estado === 'Activo (Prestado)') return 'badge bg-warning text-dark';
-    if (estado === 'Devuelto') return 'badge bg-success'; 
+    if (estado === 'Devuelto') return 'badge bg-success';
     return 'badge bg-secondary';
   }
 }

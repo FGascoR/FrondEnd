@@ -1,9 +1,12 @@
-import { NgModule } from '@angular/core';
+import { NgModule, LOCALE_ID } from '@angular/core'; 
 import { BrowserModule } from '@angular/platform-browser';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms'; 
 import { AppRoutingModule } from './app-routing.module'; 
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http'; 
 import { AuthInterceptor } from './auth.interceptor';
+
+import { registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es-PE';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
@@ -22,6 +25,8 @@ import { PrestamosAdminComponent } from './pages/prestamos-admin/prestamos-admin
 import { ReportesAdminComponent } from './pages/reportes-admin/reportes-admin.component';
 import { InicioAdminComponent } from './pages/inicio-admin/inicio-admin.component'; 
 import { PenalidadesAdminComponent } from './pages/penalidades-admin/penalidades-admin.component'; 
+
+registerLocaleData(localeEs, 'es-PE');
 
 @NgModule({
   declarations: [
@@ -50,11 +55,14 @@ import { PenalidadesAdminComponent } from './pages/penalidades-admin/penalidades
     FormsModule, 
     HttpClientModule
   ],
-  providers: [{
-      provide: HTTP_INTERCEPTORS,
-      useClass: AuthInterceptor,
-      multi: true
-    }],
+  providers: [
+    { 
+      provide: HTTP_INTERCEPTORS, 
+      useClass: AuthInterceptor, 
+      multi: true 
+    },
+    { provide: LOCALE_ID, useValue: 'es-PE' } 
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

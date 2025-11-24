@@ -1,5 +1,4 @@
 <app-navbar 
-  (onSearch)="handleUniversalSearch($event)" 
   (onCargarHistorial)="cargarHistorialUsuario()">
 </app-navbar>
 
@@ -17,7 +16,8 @@
           
           <div class="card text-center shadow-sm h-100" style="border:2px solid #2B4D92; position: relative;">
             
-            <span [ngClass]="getDisponibilidadClass(libro)"
+            <span *ngIf="!isAdmin"
+                  [ngClass]="getDisponibilidadClass(libro)"
                   style="position: absolute; top: 10px; right: 10px; font-size: 0.8rem; z-index: 2;">
               {{ getDisponibilidadLibro(libro) }}
             </span>
@@ -29,10 +29,14 @@
               <p class="text-muted">{{ getAutor(libro) }}</p>
               <p class="text-muted small">Categoria: {{ libro.dewey?.categoria || 'N/A' }}</p> 
 
-              <div class="d-flex justify-content-center gap-3 mt-auto">
+              <div class="d-flex justify-content-center gap-3 mt-auto" *ngIf="!isAdmin">
                 <button class="btn btn-outline-warning" (click)="verificarDisponibilidad(libro, 'reserva')">Reservar</button>
                 <button class="btn btn-outline-primary" (click)="verificarDisponibilidad(libro, 'prestamo')">Prestar</button>
               </div>
+              
+              <div class="mt-auto" *ngIf="isAdmin">
+              </div>
+
             </div>
           </div>
         </div>
@@ -61,6 +65,8 @@
     </div> 
   </div> 
 </div> 
+
+
 <app-footer></app-footer>
 
 <div class="modal fade" id="seleccionModal" tabindex="-1">
@@ -120,9 +126,16 @@
               </div>
             </div>
             <div class="col-md-7">
-               <label for="fechaReserva" class="form-label fw-bold">Seleccione la fecha de reserva:</label>
-               <input type="date" id="fechaReserva" class="form-control" formControlName="fechaExpiracion">
-               <div class="form-text">MM/DD/YYYY</div>
+               <div class="mb-3">
+                <label for="fechaInicioReserva" class="form-label fw-bold">Fecha de Inicio:</label>
+                <input type="date" id="fechaInicioReserva" class="form-control" formControlName="fechaReserva">
+              </div>
+
+              <div class="mb-3">
+                <label for="fechaReserva" class="form-label fw-bold">Fecha de Expiración:</label>
+                <input type="date" id="fechaReserva" class="form-control" formControlName="fechaExpiracion">
+                <div class="form-text">MM/DD/YYYY</div>
+              </div>
             </div>
           </div>
         </div>

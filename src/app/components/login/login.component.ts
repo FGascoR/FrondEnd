@@ -27,7 +27,7 @@ export class LoginComponent implements OnInit {
     if (this.authService.isLoggedIn()) {
       console.log('Usuario ya logueado, redirigiendo...');
       if (this.authService.hasRole('ROLE_ADMIN')) {
-        this.router.navigate(['/paneladmin/libros-admin']);
+        this.router.navigate(['/paneladmin/inicio']);
       } else {
         this.router.navigate(['/biblioteca']);
       }
@@ -52,7 +52,7 @@ export class LoginComponent implements OnInit {
     this.authService.login(credentials).subscribe({
       next: (response) => {
         if (response.role === 'admin') {
-          this.router.navigate(['/paneladmin/libros-admin']);
+          this.router.navigate(['/paneladmin/inicio']);
         } else {
           this.router.navigate(['/biblioteca']);
         }

@@ -3,6 +3,7 @@ import { LibroService } from '../../services/libro.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReservaService } from '../../services/reserva.service';
 import { PrestamoService } from '../../services/prestamo.service';
+import { AuthService } from '../../auth.service';
 
 declare var bootstrap: any;
 
@@ -36,15 +37,19 @@ export class BibliotecaComponent implements OnInit {
   misPrestamos: any[] = [];
   isLoadingHistorial = false;
 
+  isAdmin: boolean = false;
+
   constructor(
     private libroService: LibroService,
     private fb: FormBuilder,
     private reservaService: ReservaService,
-    private prestamoService: PrestamoService
+    private prestamoService: PrestamoService,
+    private authService: AuthService
   ) {
     const today = new Date().toISOString().split('T')[0];
 
     this.reservaForm = this.fb.group({
+      fechaReserva: [today, Validators.required], 
       fechaExpiracion: [today, Validators.required]
     });
 
@@ -55,6 +60,7 @@ export class BibliotecaComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.isAdmin = this.authService.hasRole('ROLE_ADMIN');
     this.cargarLibros();
 
     const toastEl = document.getElementById('confirmationToast');
@@ -85,42 +91,18 @@ export class BibliotecaComponent implements OnInit {
     });
   }
 
-  handleUniversalSearch(searchTerm: string) {
-    let universalFilters: any = {};
-    if (searchTerm && searchTerm.trim().length > 0) {
-      universalFilters = {
-        titulo: searchTerm,
-        autor: 'UNIVERSAL_SEARCH_FLAG'
-      };
-    } else {
-      universalFilters = this.currentFilters;
-    }
-
-    this.libroService.getLibros(universalFilters).subscribe({
-      next: (data) => {
-        this.libros = data;
-        this.page = 1;
-      },
-      error: (err) => console.error('Error en búsqueda universal', err)
-    });
-  }
-
   verificarDisponibilidad(libro: any, accion: string) {
     this.libroSeleccionado = libro;
     this.accionPendiente = accion;
 
-    if (libro.ejemplares) {
-      this.ejemplaresDelLibro = libro.ejemplares;
-    } else {
-      this.ejemplaresDelLibro = [];
-    }
+    this.ejemplaresDelLibro = libro.ejemplares ?? [];
 
     if (this.ejemplaresDelLibro.length > 1) {
       this.seleccionModal.show();
     } else if (this.ejemplaresDelLibro.length === 1) {
-      const unicoEjemplar = this.ejemplaresDelLibro[0];
-      if (unicoEjemplar.estado === 'Disponible') {
-        this.seleccionarEjemplar(unicoEjemplar);
+      const unico = this.ejemplaresDelLibro[0];
+      if (unico.estado === 'Disponible') {
+        this.seleccionarEjemplar(unico);
       } else {
         this.seleccionModal.show();
       }
@@ -141,15 +123,18 @@ export class BibliotecaComponent implements OnInit {
   }
 
   openReservaModal() {
+    const today = new Date().toISOString().split('T')[0];
     this.reservaForm.reset({
-      fechaExpiracion: new Date().toISOString().split('T')[0]
+      fechaReserva: today,
+      fechaExpiracion: today
     });
     this.reservaModal.show();
   }
 
   openPrestamoModal() {
+    const today = new Date().toISOString().split('T')[0];
     this.prestamoForm.reset({
-      fechaPrestamo: new Date().toISOString().split('T')[0],
+      fechaPrestamo: today,
       fechaDevolucion: ''
     });
     this.prestamoModal.show();
@@ -159,9 +144,10 @@ export class BibliotecaComponent implements OnInit {
     if (this.reservaForm.invalid || !this.ejemplarSeleccionado) return;
 
     const payload = {
+      fechaReserva: this.reservaForm.value.fechaReserva, 
       fechaExpiracion: this.reservaForm.value.fechaExpiracion,
       ejemplar: {
-        idEjemplar: this.ejemplarSeleccionado.idEjemplar
+        idEjemplar: this.ejemplarSeleccionado.idEjemplar 
       }
     };
 
@@ -199,7 +185,7 @@ export class BibliotecaComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al prestar', err);
-        alert(err.error.message || 'Error al procesar el préstamo.');
+        alert(err.error?.message || 'Error al procesar el préstamo.');
       }
     });
   }
@@ -234,30 +220,20 @@ export class BibliotecaComponent implements OnInit {
   }
 
   getDisponibilidadLibro(libro: any): string {
-    if (!libro || !libro.ejemplares || libro.ejemplares.length === 0) {
-      return '';
-    }
-
-    if (libro.ejemplares.length > 1) {
-      return '';
-    }
-
-    const unico = libro.ejemplares[0];
-    return unico.estado;
+    if (!libro?.ejemplares?.length) return '';
+    
+    if (libro.ejemplares.length > 1) return '';
+    
+    return libro.ejemplares[0].estado;
   }
 
   getDisponibilidadClass(libro: any): string {
     const status = this.getDisponibilidadLibro(libro);
-
     switch (status) {
-      case 'Disponible':
-        return 'badge bg-success';
-      case 'Reservado':
-        return 'badge bg-info text-dark';
-      case 'Prestado':
-        return 'badge bg-warning text-dark';
-      default:
-        return 'd-none';
+      case 'Disponible': return 'badge bg-success';
+      case 'Reservado':  return 'badge bg-info text-dark';
+      case 'Prestado':   return 'badge bg-warning text-dark';
+      default: return 'd-none';
     }
   }
 
@@ -272,9 +248,7 @@ export class BibliotecaComponent implements OnInit {
   }
 
   getAutor(libro: any): string {
-    if (!libro || !libro.autorLibros || libro.autorLibros.length === 0) {
-      return 'Autor Desconocido';
-    }
+    if (!libro?.autorLibros?.length) return 'Autor Desconocido';
     const autor = libro.autorLibros[0].autor;
     return `${autor.nombres} ${autor.apellidos}`;
   }
@@ -289,7 +263,7 @@ export class BibliotecaComponent implements OnInit {
   }
 
   get paginas(): number[] {
-    return Array(this.totalPages()).fill(0).map((x, i) => i + 1);
+    return Array(this.totalPages()).fill(0).map((_, i) => i + 1);
   }
 
   cambiarPagina(nuevaPagina: number) {

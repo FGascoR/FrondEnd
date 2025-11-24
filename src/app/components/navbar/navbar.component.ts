@@ -1,47 +1,36 @@
-import { Component, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core'; 
+import { Component, Output, EventEmitter, OnInit } from '@angular/core'; 
 import { Router } from '@angular/router';        
 import { AuthService } from '../../auth.service'; 
-import { FormControl } from '@angular/forms'; 
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { Subscription } from 'rxjs'; 
 
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
-export class NavbarComponent implements OnInit, OnDestroy { 
-  searchTermControl = new FormControl('');
-  @Output() onSearch = new EventEmitter<string>(); 
-  @Output() onCargarHistorial = new EventEmitter<void>();
+export class NavbarComponent implements OnInit { 
 
-  private searchSubscription: Subscription | undefined; 
+  @Output() onCargarHistorial = new EventEmitter<void>();
+  
+  isAdmin: boolean = false;
   constructor(
     private router: Router,
-    private authService: AuthService 
+    private authService: AuthService
   ) { }
-
+  
   ngOnInit() {
-    this.searchSubscription = this.searchTermControl.valueChanges.pipe(
-      debounceTime(400), 
-      distinctUntilChanged() 
-    ).subscribe(value => {
-      this.onSearch.emit((value as string).trim());
-    });
-  }
-
-  ngOnDestroy() {
-    if (this.searchSubscription) {
-      this.searchSubscription.unsubscribe();
-    }
+    this.isAdmin = this.authService.hasRole('ROLE_ADMIN');
   }
 
   logout() {
     this.authService.logout(); 
     this.router.navigate(['/login']); 
   }
-  
+
   cargarHistorial() {
     this.onCargarHistorial.emit();
+  }
+
+  irAlPanel() {
+    this.router.navigate(['/admin/inicio']);
   }
 }
