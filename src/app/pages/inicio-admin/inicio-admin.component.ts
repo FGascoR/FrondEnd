@@ -69,7 +69,6 @@ export class InicioAdminComponent implements OnInit {
     this.setupModales();
     this.setupFormListeners();
 
-    // Escuchar cambios INDEPENDIENTES en los filtros
     this.fechaReservaControl.valueChanges.subscribe(() => {
       this.cargarReservas();
     });
@@ -186,6 +185,7 @@ export class InicioAdminComponent implements OnInit {
         this.registrarPrestamoModal.hide();
         this.showToast('¡Reserva convertida a préstamo con éxito!');
         this.cargarReservas(); 
+        this.cargarPrestamos();
         if(this.detalleModal) this.detalleModal.hide(); 
       },
       error: (err) => {
