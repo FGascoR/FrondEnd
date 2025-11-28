@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ReservaService } from '../../services/reserva.service';
 import { PrestamoService } from '../../services/prestamo.service';
-import { LibroService } from '../../services/libro.service'; 
-import { EjemplarService } from '../../services/ejemplar.service';
-import { DevolucionService } from '../../services/devolucion.service';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { DevolucionService } from '../../services/devolucion.service'; 
+import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 
 declare var bootstrap: any;
 
@@ -15,15 +13,16 @@ declare var bootstrap: any;
 })
 export class InicioAdminComponent implements OnInit {
 
-  totalLibros: number = 0;
-  totalEjemplares: number = 0;
   totalReservasHoy: number = 0;
   totalPrestamosVencenHoy: number = 0;
-
+  
   reservasHoy: any[] = [];
   prestamosVencenHoy: any[] = [];
   isLoading = true;
-  
+
+  fechaReservaControl = new FormControl('');
+  fechaPrestamoControl = new FormControl('');
+
   detalleModal: any;
   itemDetalle: any = null;
   tipoDetalle: string = ''; 
@@ -42,12 +41,13 @@ export class InicioAdminComponent implements OnInit {
   constructor(
     private reservaService: ReservaService,
     private prestamoService: PrestamoService,
-    private libroService: LibroService,
-    private ejemplarService: EjemplarService,
     private devolucionService: DevolucionService,
     private fb: FormBuilder
   ) {
     const today = this.getFechaLocal();
+
+    this.fechaReservaControl.setValue(today);
+    this.fechaPrestamoControl.setValue(today);
 
     this.registrarPrestamoForm = this.fb.group({
       fechaPrestamo: [today, Validators.required],
@@ -68,6 +68,15 @@ export class InicioAdminComponent implements OnInit {
     this.cargarDatosDashboard();
     this.setupModales();
     this.setupFormListeners();
+
+    // Escuchar cambios INDEPENDIENTES en los filtros
+    this.fechaReservaControl.valueChanges.subscribe(() => {
+      this.cargarReservas();
+    });
+
+    this.fechaPrestamoControl.valueChanges.subscribe(() => {
+      this.cargarPrestamos();
+    });
   }
 
   getFechaLocal(): string {
@@ -80,22 +89,27 @@ export class InicioAdminComponent implements OnInit {
 
   cargarDatosDashboard() {
     this.isLoading = true;
-    const today = this.getFechaLocal();
+    
+    this.cargarReservas();
+    this.cargarPrestamos();
+  }
 
-    this.reservaService.getAllReservas({ fechaExpiracion: today }).subscribe(data => {
+  cargarReservas() {
+    const fecha = this.fechaReservaControl.value || this.getFechaLocal();
+    this.reservaService.getAllReservas({ fechaExpiracion: fecha }).subscribe(data => {
       this.reservasHoy = data;
-      this.totalReservasHoy = data.length;
+      this.totalReservasHoy = data.length; 
       this.checkLoading();
     });
+  }
 
-    this.prestamoService.getAllPrestamos({ fechaDevolucion: today }).subscribe(data => {
+  cargarPrestamos() {
+    const fecha = this.fechaPrestamoControl.value || this.getFechaLocal();
+    this.prestamoService.getAllPrestamos({ fechaDevolucion: fecha }).subscribe(data => {
       this.prestamosVencenHoy = data;
-      this.totalPrestamosVencenHoy = data.length;
+      this.totalPrestamosVencenHoy = data.length; 
       this.checkLoading();
     });
-
-    this.libroService.getLibros().subscribe(data => this.totalLibros = data.length);
-    this.ejemplarService.getEjemplares().subscribe(data => this.totalEjemplares = data.length);
   }
 
   checkLoading() {
@@ -122,8 +136,10 @@ export class InicioAdminComponent implements OnInit {
     this.devolucionForm.valueChanges.subscribe(val => {
        const montoControl = this.devolucionForm.get('montoPenalidad');
        const motivoControl = this.devolucionForm.get('motivo');
+       
        if (val.addPenalidad) {
          motivoControl?.setValidators([Validators.required]);
+         
          if (val.tipoPenalidad === 'Monetaria') {
            montoControl?.setValidators([Validators.required, Validators.min(0.01)]);
            montoControl?.enable({ emitEvent: false });
@@ -135,11 +151,14 @@ export class InicioAdminComponent implements OnInit {
        } else {
          montoControl?.clearValidators();
          motivoControl?.clearValidators();
+         montoControl?.setValue(null, { emitEvent: false });
+         motivoControl?.setValue('', { emitEvent: false });
        }
        montoControl?.updateValueAndValidity({ emitEvent: false });
        motivoControl?.updateValueAndValidity({ emitEvent: false });
     });
   }
+
 
   verDetalle(item: any, tipo: string) {
     this.itemDetalle = item;
@@ -150,12 +169,11 @@ export class InicioAdminComponent implements OnInit {
   openRegistrarPrestamoModal(reserva: any) {
     this.selectedReserva = reserva;
     const today = this.getFechaLocal();
-
+    
     this.registrarPrestamoForm.reset({
       fechaPrestamo: today,
       fechaDevolucion: ''
     });
-
     this.registrarPrestamoModal.show();
   }
 
@@ -166,15 +184,20 @@ export class InicioAdminComponent implements OnInit {
     this.prestamoService.convertFromReserva(payload, this.selectedReserva.idReserva).subscribe({
       next: () => {
         this.registrarPrestamoModal.hide();
-        this.showToast('Reserva convertida a préstamo exitosamente');
-        this.cargarDatosDashboard();
+        this.showToast('¡Reserva convertida a préstamo con éxito!');
+        this.cargarReservas(); 
+        if(this.detalleModal) this.detalleModal.hide(); 
       },
-      error: () => alert('Error al convertir reserva')
+      error: (err) => {
+        console.error(err);
+        alert('Error al convertir reserva');
+      }
     });
   }
 
   openDevolucionModal(prestamo: any) {
     this.selectedPrestamo = prestamo;
+    
     this.devolucionForm.reset({
       estadoEjemplar: 'Bueno',
       observaciones: '',
@@ -190,11 +213,13 @@ export class InicioAdminComponent implements OnInit {
     if (this.devolucionForm.invalid) return;
     
     const form = this.devolucionForm.value;
+    
     const payload: any = {
       estadoEjemplar: form.estadoEjemplar,
       observaciones: form.observaciones,
       penalidad: null
     };
+
     if (form.addPenalidad) {
       payload.penalidad = {
         tipo: form.tipoPenalidad,
@@ -206,10 +231,14 @@ export class InicioAdminComponent implements OnInit {
     this.devolucionService.registrarDevolucion(payload, this.selectedPrestamo.idPrestamo).subscribe({
       next: () => {
         this.devolucionModal.hide();
-        this.showToast('Devolución registrada exitosamente');
-        this.cargarDatosDashboard();
+        this.showToast('¡Devolución registrada con éxito!');
+        this.cargarPrestamos(); 
+        if(this.detalleModal) this.detalleModal.hide();
       },
-      error: () => alert('Error al registrar devolución')
+      error: (err) => {
+        console.error(err);
+        alert('Error al registrar devolución');
+      }
     });
   }
 
