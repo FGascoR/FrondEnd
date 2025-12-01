@@ -10,9 +10,11 @@ declare var bootstrap: any;
 @Component({
   selector: 'app-biblioteca',
   templateUrl: './biblioteca.component.html',
+  styleUrls: ['./biblioteca.component.css'] 
 })
 export class BibliotecaComponent implements OnInit {
 
+  isLoggedIn: boolean = false; 
   libros: any[] = [];
   page = 1;
   pageSize = 12;
@@ -60,6 +62,7 @@ export class BibliotecaComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.isLoggedIn = this.authService.isLoggedIn();
     this.isAdmin = this.authService.hasRole('ROLE_ADMIN');
     this.cargarLibros();
 
@@ -86,7 +89,6 @@ export class BibliotecaComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cargar libros:', err);
-        alert('Error al cargar los libros.');
       }
     });
   }

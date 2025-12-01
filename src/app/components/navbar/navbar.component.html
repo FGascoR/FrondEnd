@@ -10,18 +10,24 @@
 </div>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3">
-  <div class="container">
+  <div class="container d-flex align-items-center"> 
     <a class="navbar-brand d-flex align-items-center" href="#">
       <img src="assets/logo-ceibos.png" alt="Logo" class="logoCeibos me-2" />
     </a>
     
-    <div class="ms-auto d-flex gap-3">
+    <div class="ms-auto d-flex align-items-center gap-3">
       
-      <button *ngIf="!isAdmin" class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#historialOffcanvas" (click)="cargarHistorial()">
+      <span *ngIf="isLoggedIn && !isAdmin && userName" class="fw-bold text-secondary me-2 d-none d-md-block">
+        <i class="bi bi-person-fill me-1"></i>{{ userName }}
+      </span>
+
+      <button *ngIf="isLoggedIn && !isAdmin" class="btn btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#historialOffcanvas" (click)="cargarHistorial()">
         <i class="bi bi-book-fill"></i> Mis Acciones
       </button>
       
-      <button *ngIf="!isAdmin" class="btn btn-custom-logout" (click)="logout()">Cerrar Sesión</button>
+      <button *ngIf="!isAdmin" class="btn btn-custom-logout" (click)="logout()">
+        {{ isLoggedIn ? 'Cerrar Sesión' : 'Regresar' }}
+      </button>
 
       <button *ngIf="isAdmin" class="btn btn-custom-logout" (click)="irAlPanel()">
         <i class="bi bi-arrow-left-circle me-2"></i> Regresar a Panel
@@ -31,6 +37,6 @@
   </div>
 </nav>
 
-<div class="banner">
-  <img src="assets/portada-biblioteca.png" class="img-fluid w-100 object-fit-cover" alt="Portada" />
+<div class="banner" [class.full-screen]="!isLoggedIn || showWelcome">
+  <img src="assets/portada-biblioteca.png" class="img-fluid" alt="Portada" />
 </div>

@@ -57,4 +57,16 @@ export class AuthService {
   hasRole(role: string): boolean {
     return this.getRoles().includes(role);
   }
+
+  getUserName(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const decodedToken: any = jwtDecode(token);
+      return decodedToken.nombreCompleto || null;
+    } catch (error) {
+      console.error("Error al obtener nombre", error);
+      return null;
+    }
+  }
 }

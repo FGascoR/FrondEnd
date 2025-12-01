@@ -12,17 +12,42 @@ export class NavbarComponent implements OnInit {
   @Output() onCargarHistorial = new EventEmitter<void>();
   
   isAdmin: boolean = false;
+  isLoggedIn: boolean = false;
+  showWelcome: boolean = false;
+  userName: string | null = null;
+
   constructor(
     private router: Router,
-    private authService: AuthService
+    public authService: AuthService 
   ) { }
   
   ngOnInit() {
-    this.isAdmin = this.authService.hasRole('ROLE_ADMIN');
+    this.isLoggedIn = this.authService.isLoggedIn();
+    
+    if (this.isLoggedIn) {
+      this.isAdmin = this.authService.hasRole('ROLE_ADMIN');
+      this.userName = this.authService.getUserName();
+      
+      const yaMostroBanner = sessionStorage.getItem('welcomeBannerShown');
+
+      if (!yaMostroBanner) {
+        this.showWelcome = true;
+
+        sessionStorage.setItem('welcomeBannerShown', 'true');
+
+        setTimeout(() => {
+          this.showWelcome = false;
+        }, 500); 
+      } else {
+        this.showWelcome = false;
+      }
+    }
   }
 
   logout() {
     this.authService.logout(); 
+    sessionStorage.removeItem('welcomeBannerShown');
+    
     this.router.navigate(['/login']); 
   }
 
@@ -31,6 +56,6 @@ export class NavbarComponent implements OnInit {
   }
 
   irAlPanel() {
-    this.router.navigate(['/admin/inicio']);
+    this.router.navigate(['/paneladmin/inicio']);
   }
 }

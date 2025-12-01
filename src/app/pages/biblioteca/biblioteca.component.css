@@ -1,0 +1,72 @@
+.custom-offcanvas-header {
+  background-color: #2B4D92;
+  color: white;
+}
+
+.custom-offcanvas-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.section-title {
+  color: #2B4D92;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  margin-top: 1.5rem;
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 5px;
+}
+
+.action-card {
+  border: none;
+  background-color: #f8f9fa; 
+  margin-bottom: 0.8rem;
+  border-radius: 6px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s;
+  padding: 10px 15px;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+  background-color: #fff;
+}
+
+.action-card.prestamo-card {
+  border-left: 4px solid #2B4D92;
+}
+
+.action-card.reserva-card {
+  border-left: 4px solid #ffc107;
+}
+
+.book-title {
+  color: #333;
+  font-weight: 600;
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.date-info {
+  color: #666;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 20px;
+  color: #6c757d;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px dashed #dee2e6;
+  font-size: 0.9rem;
+}

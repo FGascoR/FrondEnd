@@ -25,7 +25,7 @@ export class LibrosComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cargar libros:', err);
-        alert('Error al cargar los libros. Revisa la consola.');
+        alert('Error al cargar los libros.');
       }
     });
   }

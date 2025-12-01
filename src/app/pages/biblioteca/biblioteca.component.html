@@ -2,7 +2,7 @@
   (onCargarHistorial)="cargarHistorialUsuario()">
 </app-navbar>
 
-<div class="container my-5">
+<div class="container my-5" *ngIf="isLoggedIn">
   <div class="row">
 
     <div class="col-lg-3 mb-4">
@@ -205,49 +205,70 @@
 </div>
 
 <div class="offcanvas offcanvas-start" tabindex="-1" id="historialOffcanvas">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title">Mis Acciones</h5>
+  
+  <div class="offcanvas-header custom-offcanvas-header">
+    <h5 class="offcanvas-title fw-bold">
+      <i class="bi bi-book-fill me-2"></i>Mis Acciones
+    </h5>
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
   </div>
+
   <div class="offcanvas-body">
     
-    <div *ngIf="isLoadingHistorial" class="text-center">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
+    <div *ngIf="isLoadingHistorial" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
       </div>
+      <p class="mt-2 text-muted small">Consultando biblioteca...</p>
     </div>
 
     <div *ngIf="!isLoadingHistorial">
-      <h6><i class="bi bi-box-arrow-up-right me-2"></i>Mis Préstamos Activos</h6>
-      <hr>
+      
+      <h6 class="section-title">
+        <i class="bi bi-journal-arrow-up me-2"></i> Préstamos Activos
+      </h6>
+      
       <div *ngIf="misPrestamos.length > 0; else noPrestamos">
-        <ul class="list-group list-group-flush">
-          <li *ngFor="let prestamo of misPrestamos" class="list-group-item">
-            <strong>{{ prestamo.ejemplar.libro.titulo }}</strong>
-            <br>
-            <small>Devolución: {{ prestamo.fechaDevolucion | date: 'dd/MM/yyyy' }}</small>
-          </li>
-        </ul>
+        <div class="list-group list-group-flush">
+          <div *ngFor="let prestamo of misPrestamos" class="list-group-item action-card prestamo-card">
+            <span class="book-title">{{ prestamo.ejemplar.libro.titulo }}</span>
+            <small class="date-info">
+              <i class="bi bi-calendar-event me-2"></i> Devolución: 
+              <span class="ms-1 fw-bold text-danger">{{ prestamo.fechaDevolucion | date: 'dd/MM/yyyy' }}</span>
+            </small>
+          </div>
+        </div>
       </div>
+      
       <ng-template #noPrestamos>
-        <p class="text-muted small" *ngIf="misReservas.length === 0">Aún no has realizado una acción.</p>
-        <p class="text-muted small" *ngIf="misReservas.length > 0">No tienes préstamos activos.</p>
+        <div class="empty-state mb-4">
+          <i class="bi bi-journal-x fs-4 d-block mb-2"></i>
+          No tienes préstamos activos actualmente.
+        </div>
       </ng-template>
 
-      <h6 class="mt-4"><i class="bi bi-bookmark-check-fill me-2"></i>Mis Reservas Activas</h6>
-      <hr>
+
+      <h6 class="section-title mt-4">
+        <i class="bi bi-bookmark-star-fill me-2"></i> Reservas Activas
+      </h6>
+      
       <div *ngIf="misReservas.length > 0; else noReservas">
-        <ul class="list-group list-group-flush">
-          <li *ngFor="let reserva of misReservas" class="list-group-item">
-            <strong>{{ reserva.ejemplar.libro.titulo }}</strong>
-            <br>
-            <small>Expira: {{ reserva.fechaExpiracion | date: 'dd/MM/yyyy' }}</small>
-          </li>
-        </ul>
+        <div class="list-group list-group-flush">
+          <div *ngFor="let reserva of misReservas" class="list-group-item action-card reserva-card">
+            <span class="book-title">{{ reserva.ejemplar.libro.titulo }}</span>
+            <small class="date-info">
+              <i class="bi bi-hourglass-split me-2"></i> Expira: 
+              <span class="ms-1 fw-bold text-dark">{{ reserva.fechaExpiracion | date: 'dd/MM/yyyy' }}</span>
+            </small>
+          </div>
+        </div>
       </div>
+
       <ng-template #noReservas>
-         <p class="text-muted small" *ngIf="misPrestamos.length === 0">Aún no has realizado una acción.</p>
-         <p class="text-muted small" *ngIf="misPrestamos.length > 0">No tienes reservas activas.</p>
+         <div class="empty-state">
+           <i class="bi bi-bookmark-x fs-4 d-block mb-2"></i>
+           No tienes reservas activas.
+         </div>
       </ng-template>
 
     </div>
